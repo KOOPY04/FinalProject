@@ -9,8 +9,7 @@ import { TfiReload } from 'react-icons/tfi';
 import { GiCancel } from 'react-icons/gi';
 import { TbPlugConnected, TbPlugConnectedX } from 'react-icons/tb';
 import { useEffect, useState } from 'react';
-import { Button, Flex, Input, List, Modal, Space, Typography } from 'antd';
-const { Text } = Typography;
+import { Button, Input, List, Modal, Space } from 'antd';
 type DataItem = { name: string; host: string; user: string; password: string; port: string };
 const ToolBar = () => {
   const [isModalVisible, setIsModalVisible] = useState(false);
@@ -102,31 +101,29 @@ const ToolBar = () => {
                   <List.Item
                     key={index}
                     onClick={() => handleEdit(item)}
-                    className='text-lg cursor-pointer'
+                    className='w-full text-lg cursor-pointer'
                   >
-                    <Flex justify='space-between' align='center'>
-                      <Text>{`${item.name}`}</Text>
-                      <div>
-                        <Button
-                          className='ml-2'
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            handleDelete(item);
-                          }}
-                        >
-                          刪除
-                        </Button>
-                        <Button
-                          className='ml-2'
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            handleConnect(item);
-                          }}
-                        >
-                          連線
-                        </Button>
-                      </div>
-                    </Flex>
+                    <p>{`${item.name}`}</p>
+                    <div>
+                      <Button
+                        className='ml-2'
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleDelete(item);
+                        }}
+                      >
+                        刪除
+                      </Button>
+                      <Button
+                        className='ml-2'
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleConnect(item);
+                        }}
+                      >
+                        連線
+                      </Button>
+                    </div>
                   </List.Item>
                 )}
               />
