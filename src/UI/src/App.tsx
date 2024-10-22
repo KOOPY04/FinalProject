@@ -1,10 +1,10 @@
-import { ToolBar, Login, ConnectStatus, FileList, SendStatus } from '@components';
+import { ToolBar, Login, ConnectStatus, FileList, SendStatus, SingleDir } from '@components';
 import { useState } from 'react';
 
 const App = () => {
   const [message, setMessage] = useState<string>('');
   return (
-    <div className='grid grid-rows-[auto_auto_2fr_auto] h-screen min-w-full bg-gray-700 gap-1 p-2'>
+    <div className='grid grid-rows-[auto_auto_2fr_auto] h-screen min-w-full bg-gray-700 gap-1 p-2 overflow-hidden'>
       <div>
         <ToolBar />
         <Login setMessage={setMessage} />
@@ -18,7 +18,12 @@ const App = () => {
           <FileList />
         </div>
       </div>
-      <div className='h-28'>
+      <div className='grid grid-rows-1 gap-1'>
+        <div className='grid grid-cols-1 gap-1'>
+          <SingleDir />
+        </div>
+      </div>
+      <div className='h-28 overflow-hidden'>
         <SendStatus />
       </div>
     </div>
