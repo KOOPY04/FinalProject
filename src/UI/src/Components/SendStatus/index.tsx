@@ -11,11 +11,11 @@ const SendStatus = () => {
       </div>
 
       {/* 滾動容器 */}
-      <div className="overflow-y-auto max-h-48 space-y-1"> {/* 設置最大高度和滾動 */}
+      <div className="overflow-y-auto" style={{ maxHeight: '3.5rem' }}> {/* 設定最大高度為單個項目的高度 */}
         {Array.from({ length: 20 }).map((_, index) => (  // 測試用的多個項目
           <div key={index} className={`grid grid-cols-5 gap-1 p-2 ${index % 2 === 0 ? 'bg-gray-400' : 'bg-gray-300'} border rounded box-border`}>
             <div className="col-span-1 truncate">IMG_78{index}.JPG</div>
-            <div className="col-span-1 truncate">{Math.random() * 10000} KB</div>
+            <div className="col-span-1 truncate">{(Math.random() * 10000).toFixed(2)} KB</div>
             <div className="col-span-1 truncate">上傳</div>
             <div className="col-span-1 truncate">/remote/path/IMG_78{index}.JPG</div>
             <div className="col-span-1 truncate">傳輸中...</div>

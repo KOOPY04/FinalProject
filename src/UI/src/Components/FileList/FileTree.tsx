@@ -31,7 +31,7 @@ const FolderMenu = ({
   nodeKey,
   onOpenFolder,
   nodeTitle,
-  isLocal
+  isLocal,
 }: {
   nodeKey: React.Key;
   onOpenFolder: (key: React.Key) => void;
@@ -40,14 +40,12 @@ const FolderMenu = ({
 }) => (
   <Menu id={folderMenuId}>
     <Item onClick={() => onOpenFolder(nodeKey)}>開啟資料夾</Item>
-    <Item
-      onClick={() => console.log(isLocal ? '新增檔案' : '新增遠端檔案')}
-    >
+    <Item onClick={() => console.log(isLocal ? '新增檔案' : '新增遠端檔案')}>
       {isLocal ? '新增檔案' : '新增遠端檔案'}
     </Item>
     <Item
       onClick={() => console.log('刪除資料夾')}
-      disabled={nodeTitle === '根目錄' || nodeTitle === 'downloads'}
+      disabled={nodeTitle === '根目錄'}
     >
       刪除資料夾
     </Item>
@@ -61,6 +59,7 @@ const FileTree: React.FC<FileTreeProps> = ({
       key: 'root',
       children: undefined,
     },
+    
   ],
   isLocal,
   onNodeSelect,
@@ -71,7 +70,8 @@ const FileTree: React.FC<FileTreeProps> = ({
   const [rightClickNodeKey, setRightClickNodeKey] = useState<React.Key | null>(null);
 
   useEffect(() => {
-    setExpandedKeys(isLocal ? ['localStorage'] : ['uploads']);
+    setExpandedKeys(isLocal ? ['localStorage'] : ['remoteStorage']);
+
   }, [isLocal]);
 
   const updateTreeData = (
@@ -95,32 +95,68 @@ const FileTree: React.FC<FileTreeProps> = ({
     });
   };
 
-  const fetchChildren = async (key: React.Key): Promise<TreeDataNode[]> => {
+  const fetchLocalChildren = async (key: React.Key): Promise<TreeDataNode[]> => {
     try {
-      const children = await (isLocal
-        ? window.pywebview.api.get_local_children(key)
-        : window.pywebview.api.get_server_children(key));
+      const children = await window.pywebview.api.get_local_children(key);
+
       const ret = JSON.parse(children);
 
-      if ('error' in ret) {
+      if (ret.error) {
         console.error('Error:', ret.error);
         return [];
       }
 
-      return ret;
+      if (!Array.isArray(ret) || ret.length === 0) {
+        return [{ title: '無檔案', key: `${key}-empty`, isLeaf: true }];
+      }
+
+      return ret.map((item) => ({
+        title: item.title,
+        key: item.key,
+        isLeaf: item.isLeaf,
+        children: item.children || undefined,
+      }));
     } catch (error) {
-      console.error('Failed to fetch children:', error);
+      console.error('Failed to fetch local children:', error);
       return [];
     }
   };
+
+  const fetchRemoteChildren = async (key: React.Key): Promise<TreeDataNode[]> => {
+    try {
+        const children = await window.pywebview.api.get_server_children(key);
+        
+        const ret = JSON.parse(children);
+
+        if (ret.error) {
+            console.error('Error:', ret.error);
+            return [];
+        }
+
+        if (!Array.isArray(ret) || ret.length === 0) {
+            return [{ title: '無檔案', key: `${key}-empty`, isLeaf: true }];
+        }
+
+        return ret.map((item) => ({
+            title: item.title,
+            key: item.key,
+            isLeaf: item.isLeaf,
+            children: item.children || undefined,
+        }));
+    } catch (error) {
+        console.error('Failed to fetch remote children:', error);
+        return [];
+    }
+};
 
   const onLoadData = async ({ key, children }: TreeDataNode): Promise<void> => {
     if (children) {
       return Promise.resolve();
     }
-    return fetchChildren(key).then((newChildren) => {
-      setTreeData((origin) => updateTreeData(origin, key, newChildren));
-    });
+    const newChildren = isLocal
+      ? await fetchLocalChildren(key)
+      : await fetchRemoteChildren(key);
+    setTreeData((origin) => updateTreeData(origin, key, newChildren));
   };
 
   const handleContextMenu = (event: React.MouseEvent, node: TreeDataNode) => {

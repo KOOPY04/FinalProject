@@ -159,9 +159,11 @@
 // export default Local;
 import { TreeDataNode } from 'antd';
 import FileTree from './FileTree';
+
 const handleNodeSelect = (key: React.Key, _: TreeDataNode) => {
   console.log('Selected node key:', key);
 };
+
 const initialTreeData = [
   {
     title: '根目錄',
@@ -169,6 +171,7 @@ const initialTreeData = [
     children: undefined,
   },
 ];
+
 export default function Local() {
   return (
     <div className='h-full px-2 py-1 bg-gray-500 border-2 rounded'>
@@ -176,3 +179,4 @@ export default function Local() {
     </div>
   );
 }
+
