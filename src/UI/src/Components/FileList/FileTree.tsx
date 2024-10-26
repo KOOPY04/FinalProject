@@ -45,7 +45,12 @@ const FolderMenu = ({
     </Item>
     <Item
       onClick={() => console.log('刪除資料夾')}
-      disabled={nodeTitle === '根目錄'}
+      disabled={
+        nodeTitle === '根目錄' ||
+        nodeTitle === '遠端根目錄' ||
+        nodeTitle === 'downloads' ||
+        nodeTitle === 'uploads'
+      }
     >
       刪除資料夾
     </Item>
@@ -59,7 +64,6 @@ const FileTree: React.FC<FileTreeProps> = ({
       key: 'root',
       children: undefined,
     },
-    
   ],
   isLocal,
   onNodeSelect,
@@ -71,7 +75,6 @@ const FileTree: React.FC<FileTreeProps> = ({
 
   useEffect(() => {
     setExpandedKeys(isLocal ? ['localStorage'] : ['remoteStorage']);
-
   }, [isLocal]);
 
   const updateTreeData = (
@@ -124,38 +127,36 @@ const FileTree: React.FC<FileTreeProps> = ({
 
   const fetchRemoteChildren = async (key: React.Key): Promise<TreeDataNode[]> => {
     try {
-        const children = await window.pywebview.api.get_server_children(key);
-        
-        const ret = JSON.parse(children);
+      const children = await window.pywebview.api.get_server_children(key);
 
-        if (ret.error) {
-            console.error('Error:', ret.error);
-            return [];
-        }
+      const ret = JSON.parse(children);
 
-        if (!Array.isArray(ret) || ret.length === 0) {
-            return [{ title: '無檔案', key: `${key}-empty`, isLeaf: true }];
-        }
-
-        return ret.map((item) => ({
-            title: item.title,
-            key: item.key,
-            isLeaf: item.isLeaf,
-            children: item.children || undefined,
-        }));
-    } catch (error) {
-        console.error('Failed to fetch remote children:', error);
+      if (ret.error) {
+        console.error('Error:', ret.error);
         return [];
+      }
+
+      if (!Array.isArray(ret) || ret.length === 0) {
+        return [{ title: '無檔案', key: `${key}-empty`, isLeaf: true }];
+      }
+
+      return ret.map((item) => ({
+        title: item.title,
+        key: item.key,
+        isLeaf: item.isLeaf,
+        children: item.children || undefined,
+      }));
+    } catch (error) {
+      console.error('Failed to fetch remote children:', error);
+      return [];
     }
-};
+  };
 
   const onLoadData = async ({ key, children }: TreeDataNode): Promise<void> => {
     if (children) {
       return Promise.resolve();
     }
-    const newChildren = isLocal
-      ? await fetchLocalChildren(key)
-      : await fetchRemoteChildren(key);
+    const newChildren = isLocal ? await fetchLocalChildren(key) : await fetchRemoteChildren(key);
     setTreeData((origin) => updateTreeData(origin, key, newChildren));
   };
 
@@ -169,6 +170,7 @@ const FileTree: React.FC<FileTreeProps> = ({
         id: fileMenuId,
         event: event,
         props: {
+          isLocal,
           node,
         },
       });
@@ -177,6 +179,7 @@ const FileTree: React.FC<FileTreeProps> = ({
         id: folderMenuId,
         event: event,
         props: {
+          isLocal,
           node,
         },
       });
