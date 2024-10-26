@@ -170,7 +170,6 @@ const FileTree: React.FC<FileTreeProps> = ({
         id: fileMenuId,
         event: event,
         props: {
-          isLocal,
           node,
         },
       });
@@ -179,7 +178,6 @@ const FileTree: React.FC<FileTreeProps> = ({
         id: folderMenuId,
         event: event,
         props: {
-          isLocal,
           node,
         },
       });
