@@ -3,7 +3,7 @@ import grpc
 from proto import hello_pb2, hello_pb2_grpc
 from Utils.parser import Parser
 
-from os.path import dirname, join, splitext, exists
+from os.path import dirname, join, splitext, exists, getsize
 from os import remove, listdir, makedirs
 
 def get_filepath(filename: str, extension: str) -> str:
@@ -14,10 +14,20 @@ class Greeter(hello_pb2_grpc.GreeterServicer):
     def __init__(self):
         self.src_dir: str = dirname(dirname(__file__))
         self.data_dir: str = join(self.src_dir, "Data")
-        self.uploads_dir: str = join(self.data_dir, "uploads")
+        self.remote_dir: str = join(self.data_dir, "remoteStorage")
+        self.uploads_dir: str = join(self.remote_dir, "uploads")
         self.chunk_size: int = 1024
 
-        makedirs(self.uploads_dir, exist_ok=True)
+
+    def GetFileSize(self, request, context):
+        filepath = get_filepath(request.filename, request.extension)
+
+        if exists(join(self.remote_dir, filepath)):
+            file_size = getsize(join(self.remote_dir, filepath)) / 1024
+
+            return hello_pb2.StringResponse(message=f"File size: {file_size:.2f} KB")
+        
+        return hello_pb2.StringResponse(message=f"File {filepath} not found.")
 
     def UploadFile(self, request_iterator, context):
         data: bytearray = bytearray()

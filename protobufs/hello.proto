@@ -6,6 +6,7 @@ service Greeter {
   rpc ListFiles(google.protobuf.Empty) returns (FileList) {}
   rpc DeleteFile(MetaData) returns (StringResponse) {}
   rpc Login(LoginRequest) returns (StringResponse) {}
+  rpc GetFileSize(MetaData) returns(StringResponse){}
 }
 
 message StringResponse {

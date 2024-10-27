@@ -45,6 +45,10 @@ class Api:
         remote_children = self.get_server_children("remoteStorage")
         return json.dumps({"message": "Login successful", "remoteChildren": remote_children})
 
+    def get_file_size(self, file_path: str) -> str:
+        file_size = os.path.getsize(file_path) / 1024
+        return file_size
+    
 
     def upload_file(self, file_path: str) -> str:
         pass
