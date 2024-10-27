@@ -12,12 +12,14 @@ interface FileTreeProps {
   onNodeSelect?: (key: React.Key, node: TreeDataNode) => void;
 }
 
-const fileMenuId = 'file_menu';
-const folderMenuId = 'folder_menu';
+const getMenuIds = (isLocal: boolean) => ({
+  fileMenuId: `file_menu_${isLocal ? 'local' : 'remote'}`,
+  folderMenuId: `folder_menu_${isLocal ? 'local' : 'remote'}`,
+});
 
 // 檔案右鍵選單
-const FileMenu = ({ isLocal }: { isLocal: boolean }) => (
-  <Menu id={fileMenuId}>
+const FileMenu = ({ isLocal, menuId }: { isLocal: boolean; menuId: string }) => (
+  <Menu id={menuId}>
     <Item onClick={() => console.log('開啟檔案')}>開啟檔案</Item>
     <Item onClick={() => console.log('刪除檔案')}>刪除檔案</Item>
     <Item onClick={() => console.log(isLocal ? '上傳檔案' : '下載檔案')}>
@@ -32,13 +34,15 @@ const FolderMenu = ({
   onOpenFolder,
   nodeTitle,
   isLocal,
+  menuId,
 }: {
   nodeKey: React.Key;
   onOpenFolder: (key: React.Key) => void;
   nodeTitle: string;
   isLocal: boolean;
+  menuId: string;
 }) => (
-  <Menu id={folderMenuId}>
+  <Menu id={menuId}>
     <Item onClick={() => onOpenFolder(nodeKey)}>開啟資料夾</Item>
     <Item onClick={() => console.log(isLocal ? '新增檔案' : '新增遠端檔案')}>
       {isLocal ? '新增檔案' : '新增遠端檔案'}
@@ -72,7 +76,7 @@ const FileTree: React.FC<FileTreeProps> = ({
   const [expandedKeys, setExpandedKeys] = useState<React.Key[]>([]);
   const [selectedNodeTitle, setSelectedNodeTitle] = useState<string>('');
   const [rightClickNodeKey, setRightClickNodeKey] = useState<React.Key | null>(null);
-
+  const menuIds = getMenuIds(isLocal);
   useEffect(() => {
     setExpandedKeys(isLocal ? ['localStorage'] : ['remoteStorage']);
   }, [isLocal]);
@@ -167,7 +171,7 @@ const FileTree: React.FC<FileTreeProps> = ({
     setRightClickNodeKey(node.key);
     if (node.isLeaf) {
       contextMenu.show({
-        id: fileMenuId,
+        id: menuIds.fileMenuId,
         event: event,
         props: {
           node,
@@ -175,7 +179,7 @@ const FileTree: React.FC<FileTreeProps> = ({
       });
     } else {
       contextMenu.show({
-        id: folderMenuId,
+        id: menuIds.folderMenuId,
         event: event,
         props: {
           node,
@@ -206,13 +210,14 @@ const FileTree: React.FC<FileTreeProps> = ({
         onRightClick={({ event, node }) => handleContextMenu(event, node)}
         onExpand={(expandedKeys) => setExpandedKeys(expandedKeys)}
       />
-      <FileMenu isLocal={isLocal} />
+      <FileMenu isLocal={isLocal} menuId={menuIds.fileMenuId} />
       {rightClickNodeKey !== null && (
         <FolderMenu
           nodeKey={rightClickNodeKey as string}
           onOpenFolder={handleOpenFolder}
           nodeTitle={selectedNodeTitle}
           isLocal={isLocal}
+          menuId={menuIds.folderMenuId}
         />
       )}
     </>
