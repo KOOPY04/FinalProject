@@ -25,9 +25,9 @@ class Greeter(hello_pb2_grpc.GreeterServicer):
         if exists(join(self.remote_dir, filepath)):
             file_size = getsize(join(self.remote_dir, filepath)) / 1024
 
-            return hello_pb2.StringResponse(message=f"File size: {file_size:.2f} KB")
+            return hello_pb2.StringResponse(message=f"{file_size:.4f}")
         
-        return hello_pb2.StringResponse(message=f"File {filepath} not found.")
+        return hello_pb2.StringResponse(message="0")
 
     def UploadFile(self, request_iterator, context):
         data: bytearray = bytearray()

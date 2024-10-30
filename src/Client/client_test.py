@@ -46,8 +46,27 @@ class Api:
         return json.dumps({"message": "Login successful", "remoteChildren": remote_children})
 
     def get_file_size(self, file_path: str) -> str:
-        file_size = os.path.getsize(file_path) / 1024
-        return file_size
+        if os.path.exists(file_path):
+            file_size = os.path.getsize(file_path) / 1024
+            print(f"File size: {file_size:.4f} KB")
+            return json.dumps(round(file_size, 4))
+        else:
+            file_name, extension = os.path.splitext(os.path.basename(file_path))
+            if "remoteStorage\\uploads" in file_path:
+                if os.path.exists(os.path.join(self.client_upload_dir, file_name + extension)):
+                    # clientUpload 中的檔案
+                    response = self.client.GetFileSize(file_name=file_name, extension=extension, directory="uploads")
+                    print(float(response.message))
+                    return json.dumps({"size": float(response.message)})
+            elif "remoteStorage" in file_path:
+                if os.path.exists(os.path.join(self.remote_storage_dir, file_name + extension)):
+                    # remoteStorage 中的檔案
+                    response = self.client.GetFileSize(file_name=file_name, extension=extension, directory="remoteStorage")
+                    print({"size": float(response.message)})                    
+                    return json.dumps(float(response.message))
+            else:
+                return json.dumps({"error": "Invalid path"})
+        return json.dumps({"error": "File not found"})
     
 
     def upload_file(self, file_path: str) -> str:

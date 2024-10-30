@@ -17,13 +17,36 @@ const getMenuIds = (isLocal: boolean) => ({
   folderMenuId: `folder_menu_${isLocal ? 'local' : 'remote'}`,
 });
 
+const handleFileAction = async (action: string, node: TreeDataNode) => {
+  const filePath = node.key; // 假設 key 是完整的檔案路徑
+  console.log(`Action: ${action}, File path: ${filePath}`);
+  const fileSize = await window.pywebview.api.get_file_size(filePath);
+  console.log('FileSize:', fileSize);
+
+  if (fileSize.error) {
+    console.error(fileSize.error);
+    return;
+  }
+
+  console.log(`File size: ${fileSize} KB`);
+
+  // 根據 action 執行相應操作
+  if (action === '上傳檔案') {
+    console.log('開始上傳檔案...');
+    await window.pywebview.api.upload_file(filePath);
+  } else if (action === '下載檔案') {
+    console.log('開始下載檔案...');
+    await window.pywebview.api.download_file(filePath);
+  }
+};
+
 // 檔案右鍵選單
 const FileMenu = ({ isLocal, menuId }: { isLocal: boolean; menuId: string }) => (
   <Menu id={menuId}>
     <Item onClick={() => console.log('開啟檔案')}>開啟檔案</Item>
     <Item onClick={() => console.log('刪除檔案')}>刪除檔案</Item>
-    <Item onClick={() => console.log(isLocal ? '上傳檔案' : '下載檔案')}>
-      {isLocal ? '上傳檔案' : '下載檔案'}
+    <Item onClick={(e) => handleFileAction(isLocal ? '上傳檔案' : '下載檔案', e.props.node)}>
+    {isLocal ? '上傳檔案' : '下載檔案'}
     </Item>
   </Menu>
 );
