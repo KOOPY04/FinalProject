@@ -3,6 +3,7 @@ import { useState } from 'react';
 
 const App = () => {
   const [message, setMessage] = useState<string>('');
+  const [sendStatus, setSendStatus] = useState<any[]>([]);
   return (
     <div className='grid grid-rows-[auto_auto_2fr_auto] h-screen min-w-full bg-gray-700 gap-1 p-2'>
       <div>
@@ -15,11 +16,11 @@ const App = () => {
 
       <div className='grid grid-rows-1 gap-1'>
         <div className='grid grid-cols-1 gap-1'>
-          <FileList />
+          <FileList setSendStatus={setSendStatus} />
         </div>
       </div>
       <div className='h-28'>
-        <SendStatus />
+        <SendStatus sendStatus={sendStatus} />
       </div>
     </div>
   );
