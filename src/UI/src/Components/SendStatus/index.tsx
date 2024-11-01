@@ -32,7 +32,7 @@ const SendStatus: React.FC<SendStatusProps> = ({ sendStatus }) => {
             className={`grid grid-cols-5 gap-1 p-2 ${index % 2 === 0 ? 'bg-gray-400' : 'bg-gray-300'} border rounded box-border`}
           >
             <div className='col-span-1 truncate'>{status.fileName}</div>
-            <div className='col-span-1 truncate'>{status.fileSize} KB</div>
+            <div className='col-span-1 truncate'>{status.fileSize} </div>
             <div className='col-span-1 truncate'>{status.direction}</div>
             <div className='col-span-1 truncate'>{status.remotePath}</div>
             <div className='col-span-1 truncate'>{status.status}</div>

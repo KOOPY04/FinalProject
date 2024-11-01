@@ -23,9 +23,16 @@ class Greeter(hello_pb2_grpc.GreeterServicer):
         filepath = get_filepath(request.filename, request.extension)
 
         if exists(join(self.remote_dir, filepath)):
-            file_size = getsize(join(self.remote_dir, filepath)) / 1024
+            file_size = getsize(join(self.remote_dir, filepath))
+            unit = ["B", "KB", "MB", "GB", "TB"]
+            count = 0
+            while file_size >= 1024:
+                file_size /= 1024
+                count += 1
 
-            return hello_pb2.StringResponse(message=f"{file_size:.4f}")
+            if count == 0:
+                return hello_pb2.StringResponse(message=f"{file_size} {unit[count]}")
+            return hello_pb2.StringResponse(message=f"{file_size:.2f} {unit[count]}")
 
         return hello_pb2.StringResponse(message="0")
 

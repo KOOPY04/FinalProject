@@ -1,9 +1,14 @@
 import React from 'react';
 import FileTree from './FileTree';
-import { SendStatusType } from './FileTree';
+import { TreeDataNode } from 'antd';
+import type { SetSendStatus } from '@constants';
 
-type RemoteProps = {
-  setSendStatus: React.Dispatch<React.SetStateAction<SendStatusType[]>>;
+interface RemoteProps {
+  setSendStatus: SetSendStatus;
+};
+
+const handleNodeSelect = (key: React.Key, _: TreeDataNode) => {
+  console.log('Selected remote node key:', key);
 };
 
 const Remote = ({ setSendStatus }: RemoteProps) => {
@@ -17,7 +22,7 @@ const Remote = ({ setSendStatus }: RemoteProps) => {
 
   return (
     <div className='h-full px-2 py-1 bg-gray-500 border-2 rounded'>
-      <FileTree initialTreeData={initialTreeData} isLocal={false} setSendStatus={setSendStatus} />
+      <FileTree onNodeSelect={handleNodeSelect} initialTreeData={initialTreeData} isLocal={false} setSendStatus={setSendStatus} />
     </div>
   );
 };

@@ -49,8 +49,15 @@ class Api:
 
     def get_file_size(self, file_path: str) -> str:
         if os.path.exists(file_path):
-            file_size = os.path.getsize(file_path) / 1024
-            return json.dumps(round(file_size, 4))
+            file_size = os.path.getsize(file_path)
+            unit = ["B", "KB", "MB", "GB", "TB"]
+            count = 0
+            while file_size >= 1024:
+                file_size /= 1024
+                count += 1
+            if count == 0:
+                return json.dumps({"size": f"{file_size} {unit[count]}"})
+            return json.dumps({"size": f"{file_size:.2f} {unit[count]}"})
         else:
             file_name, extension = os.path.splitext(
                 os.path.basename(file_path))

@@ -1,6 +1,6 @@
 import { ToolBar, Login, ConnectStatus, FileList, SendStatus } from '@components';
 import { useState } from 'react';
-import { SendStatusType } from './Components/FileList/FileTree';
+import { SendStatusType } from '@constants';
 
 const App = () => {
   const [message, setMessage] = useState<string>('');

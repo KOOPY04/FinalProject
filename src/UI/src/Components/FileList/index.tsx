@@ -1,9 +1,9 @@
 import Local from './Local';
 import Remote from './Remote';
-import { SendStatusType } from './FileTree';
+import type {SetSendStatus } from '@constants';
 
 interface FileListProps {
-  setSendStatus: React.Dispatch<React.SetStateAction<SendStatusType[]>>;
+  setSendStatus: SetSendStatus;
 }
 
 const FileList: React.FC<FileListProps> = ({ setSendStatus }: FileListProps) => {

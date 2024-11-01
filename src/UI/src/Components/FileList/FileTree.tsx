@@ -3,23 +3,15 @@ import { Tree } from 'antd';
 import type { TreeDataNode } from 'antd';
 import { Menu, Item, contextMenu } from 'react-contexify';
 import 'react-contexify/dist/ReactContexify.css';
+import type {SetSendStatus } from '@constants';
 
 const { DirectoryTree } = Tree;
-
-// 將 SendStatus 型別重命名為 SendStatusType
-export interface SendStatusType {
-  fileName: string;
-  fileSize: string;
-  direction: string;
-  remotePath: string;
-  status: string;
-}
 
 interface FileTreeProps {
   initialTreeData?: TreeDataNode[];
   isLocal: boolean;
   onNodeSelect?: (key: React.Key, node: TreeDataNode) => void;
-  setSendStatus: React.Dispatch<React.SetStateAction<SendStatusType[]>>;
+  setSendStatus: SetSendStatus;
 }
 
 const getMenuIds = (isLocal: boolean) => ({
@@ -81,17 +73,18 @@ const FileTree: React.FC<FileTreeProps> = ({
     setExpandedKeys(isLocal ? ['localStorage'] : ['remoteStorage']);
   }, [isLocal]);
 
+
   const handleFileAction = async (action: string, node: TreeDataNode) => {
     const filePath = node.key;
     const fileSize = await window.pywebview.api.get_file_size(filePath);
-    const size = JSON.parse(fileSize as string);
+    const size = JSON.parse(fileSize);
 
     if (size.error) {
       console.error(size.error);
       return;
     }
 
-    const fileSizeKB = `${size} KB`;
+    const fileSizeKB = `${size.size }`;
     const direction = action === '上傳檔案' ? '上傳' : '下載';
     const remotePath = isLocal ? '' : `/remote/path/${node.title}`;
 
