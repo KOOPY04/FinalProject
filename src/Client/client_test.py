@@ -14,8 +14,10 @@ class Api:
         # self.server_upload_dir = os.path.join(base_dir, "Data/uploads")
         self.local_storage_dir = os.path.join(base_dir, "Data/localStorage")
         self.remote_storage_dir = os.path.join(base_dir, "Data/remoteStorage")
-        self.client_download_dir = os.path.join(self.local_storage_dir, "downloads")
-        self.client_upload_dir = os.path.join(self.remote_storage_dir, "uploads")
+        self.client_download_dir = os.path.join(
+            self.local_storage_dir, "downloads")
+        self.client_upload_dir = os.path.join(
+            self.remote_storage_dir, "uploads")
 
         self.path_mapping = {
             "downloads": self.client_download_dir,
@@ -32,19 +34,46 @@ class Api:
         self.client = self.client_obj(f"{host}:{port}")
         if self.isLogin:
             return json.dumps({"message": "Already logged in"})
-        
+
         self.isConnected = self.client.connect()
         if not self.isConnected:
             return json.dumps({"error": "Connection failed"})
-        
+
         self.isLogin = self.client.login(username, password)
         if not self.isLogin:
             return json.dumps({"error": "Login failed"})
-        
+
         # 在成功登錄後抓取 remoteStorage
         remote_children = self.get_server_children("remoteStorage")
         return json.dumps({"message": "Login successful", "remoteChildren": remote_children})
 
+    def get_file_size(self, file_path: str) -> str:
+        if os.path.exists(file_path):
+            file_size = os.path.getsize(file_path)
+            unit = ["B", "KB", "MB", "GB", "TB"]
+            count = 0
+            while file_size >= 1024:
+                file_size /= 1024
+                count += 1
+            if count == 0:
+                return json.dumps({"size": f"{file_size} {unit[count]}"})
+            return json.dumps({"size": f"{file_size:.2f} {unit[count]}"})
+        else:
+            file_name, extension = os.path.splitext(
+                os.path.basename(file_path))
+            if "remoteStorage\\uploads" in file_path:
+                if os.path.exists(os.path.join(self.client_upload_dir, file_name + extension)):
+                    response = self.client.GetFileSize(
+                        file_name=file_name, extension=extension)
+                    return json.dumps({"size": float(response.message)})
+            elif "remoteStorage" in file_path:
+                if os.path.exists(os.path.join(self.remote_storage_dir, file_name + extension)):
+                    response = self.client.GetFileSize(
+                        file_name=file_name, extension=extension)
+                    return json.dumps(float(response.message))
+            else:
+                return json.dumps({"error": "Invalid path"})
+        return json.dumps({"error": "File not found"})
 
     def upload_file(self, file_path: str) -> str:
         pass
@@ -88,7 +117,7 @@ class Api:
             return json.dumps({"error": str(e)})
 
     def get_server_children(self, path: str) -> str:
-        
+
         if path != "remoteStorage" and not path.startswith(os.path.join(self.remote_storage_dir)):
             return json.dumps({"error": f"Invalid path: {path}. Use 'remoteStorage'."})
 
@@ -122,7 +151,8 @@ class Api:
 def client_test(args: list[str]) -> NoReturn:
     api = Api(args)
     current_dir = os.path.dirname(os.path.abspath(__file__))
-    index_path = os.path.join(current_dir, 'dist/index.html')              
+    index_path = os.path.join(current_dir, 'dist/index.html')
     webview.create_window(
         'File Uploader', index_path, js_api=api, resizable=True, width=1000, height=885)
     webview.start(debug=True)
+
