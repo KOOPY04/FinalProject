@@ -6,11 +6,20 @@ import 'react-contexify/dist/ReactContexify.css';
 
 const { DirectoryTree } = Tree;
 
+// 將 SendStatus 型別重命名為 SendStatusType
+export interface SendStatusType {
+  fileName: string;
+  fileSize: string;
+  direction: string;
+  remotePath: string;
+  status: string;
+}
+
 interface FileTreeProps {
   initialTreeData?: TreeDataNode[];
   isLocal: boolean;
   onNodeSelect?: (key: React.Key, node: TreeDataNode) => void;
-  setSendStatus: React.Dispatch<React.SetStateAction<any[]>>;
+  setSendStatus: React.Dispatch<React.SetStateAction<SendStatusType[]>>;
 }
 
 const getMenuIds = (isLocal: boolean) => ({
@@ -72,50 +81,47 @@ const FileTree: React.FC<FileTreeProps> = ({
     setExpandedKeys(isLocal ? ['localStorage'] : ['remoteStorage']);
   }, [isLocal]);
 
-  
-const handleFileAction = async (action: string, node: TreeDataNode) => {
-  const filePath = node.key;
-  const fileSize = await window.pywebview.api.get_file_size(filePath);
-  const size = JSON.parse(fileSize);
+  const handleFileAction = async (action: string, node: TreeDataNode) => {
+    const filePath = node.key;
+    const fileSize = await window.pywebview.api.get_file_size(filePath);
+    const size = JSON.parse(fileSize);
 
-  if (size.error) {
-    console.error(size.error);
-    return;
-  }
+    if (size.error) {
+      console.error(size.error);
+      return;
+    }
 
-  const fileSizeKB = `${size} KB`;
-  const direction = action === '上傳檔案' ? '上傳' : '下載';
-  const remotePath = isLocal ? '' : `/remote/path/${node.title}`;
+    const fileSizeKB = `${size}`;
+    const direction = action === '上傳檔案' ? '上傳' : '下載';
+    const remotePath = isLocal ? '' : `/remote/path/${node.title}`;
 
-  setSendStatus((prev) => [
-    ...prev,
-    { fileName: String(node.title), fileSize: fileSizeKB, direction, remotePath, status },
-  ]);
+    setSendStatus((prev) => [
+      ...prev,
+      { fileName: String(node.title), fileSize: fileSizeKB, direction, remotePath, status: '傳送中' },
+    ]);
 
+    if (action === '上傳檔案') {
+      await window.pywebview.api.upload_file(filePath);
+    } else if (action === '下載檔案') {
+      await window.pywebview.api.download_file(filePath);
+    }
 
-  if (action === '上傳檔案') {
-    await window.pywebview.api.upload_file(filePath);
-  } else if (action === '下載檔案') {
-    await window.pywebview.api.download_file(filePath);
-  }
+    setSendStatus((prev) =>
+      prev.map((item) =>
+        item.fileName === String(node.title) ? { ...item, status: '完成' } : item,
+      ),
+    );
+  };
 
-  setSendStatus((prev) =>
-    prev.map((item) =>
-      item.fileName === String(node.title) ? { ...item, status: '完成' } : item
-    )
+  const FileMenu = ({ isLocal, menuId }: { isLocal: boolean; menuId: string }) => (
+    <Menu id={menuId}>
+      <Item onClick={() => console.log('開啟檔案')}>開啟檔案</Item>
+      <Item onClick={() => console.log('刪除檔案')}>刪除檔案</Item>
+      <Item onClick={(e) => handleFileAction(isLocal ? '上傳檔案' : '下載檔案', e.props.node)}>
+        {isLocal ? '上傳檔案' : '下載檔案'}
+      </Item>
+    </Menu>
   );
-};
-
-const FileMenu = ({ isLocal, menuId }: { isLocal: boolean; menuId: string }) => (
-  <Menu id={menuId}>
-    <Item onClick={() => console.log('開啟檔案')}>開啟檔案</Item>
-    <Item onClick={() => console.log('刪除檔案')}>刪除檔案</Item>
-    <Item onClick={(e) => handleFileAction(isLocal ? '上傳檔案' : '下載檔案', e.props.node)}>
-    {isLocal ? '上傳檔案' : '下載檔案'}
-    </Item>
-  </Menu>
-);
-
 
   const updateTreeData = (
     treeData: TreeDataNode[],

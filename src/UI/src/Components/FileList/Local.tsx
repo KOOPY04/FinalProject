@@ -1,8 +1,9 @@
 import React from 'react';
 import FileTree from './FileTree';
+import { SendStatusType } from './FileTree';
 
 type LocalProps = {
-  setSendStatus: React.Dispatch<React.SetStateAction<any[]>>;
+  setSendStatus: React.Dispatch<React.SetStateAction<SendStatusType[]>>;
 };
 
 const Local = ({ setSendStatus }: LocalProps) => {

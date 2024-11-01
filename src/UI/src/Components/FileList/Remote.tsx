@@ -1,8 +1,9 @@
 import React from 'react';
 import FileTree from './FileTree';
+import { SendStatusType } from './FileTree';
 
 type RemoteProps = {
-  setSendStatus: React.Dispatch<React.SetStateAction<any[]>>;
+  setSendStatus: React.Dispatch<React.SetStateAction<SendStatusType[]>>;
 };
 
 const Remote = ({ setSendStatus }: RemoteProps) => {
