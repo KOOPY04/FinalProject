@@ -58,21 +58,49 @@ const ToolBar: React.FC<ToolBarProps> = ({
       setName('');
     }
   };
+  const handleRealod = () => {
+    //if login status is true then reload the LocalFileList and RemoteFileList
+    //else only reload LocalFileList
+    console.log('Reloading...');
+  };
+  const handleCancel = () => {
+    //Cancel the current operation
+    console.log('Cancelling...');
+  };
+  const handleLastLogin = () => {
+    //Connect to the last connected server
+    console.log('Connecting to the last connected server...');
+  };
+  const handleDisconnect = () => {
+    //Disconnect the current server
+    console.log('Disconnecting...');
+  };
   const handleClick = (e: React.MouseEvent<HTMLButtonElement>) => {
     const id = e.currentTarget.getAttribute('id');
-    console.log(`Button clicked: ${id}`);
     switch (id) {
-      case '1':
+      case '1': //ConnectStatus
         toggleConnectStatusOpen();
         break;
-      case '2':
+      case '2': //LocalFileList
         toggleLocalFileListOpen();
         break;
-      case '3':
+      case '3': //RemoteFileList
         toggleRemoteFileListOpen();
         break;
-      case '4':
+      case '4': //SendStatus
         toggleSendStatusOpen();
+        break;
+      case '5': //Reload
+        handleRealod();
+        break;
+      case '6': //Cancel
+        handleCancel();
+        break;
+      case '7': //Connect
+        handleLastLogin();
+        break;
+      case '8': //Disconnect
+        handleDisconnect();
         break;
     }
   };
@@ -214,16 +242,16 @@ const ToolBar: React.FC<ToolBarProps> = ({
         </button>
       </div>
       <div className='flex items-center'>
-        <button title='重新整理檔案及資料夾' onClick={handleClick}>
+        <button title='重新整理檔案及資料夾' id='5' onClick={handleClick}>
           <TfiReload className='h-9 w-9 lg:w-16 lg:h-16 md:w-12 md:h-12' color='#99ff99' />
         </button>
-        <button title='取消檔案動作' className='ml-2 lg:ml-4 md:ml-3' onClick={handleClick}>
+        <button title='取消檔案動作' className='ml-2 lg:ml-4 md:ml-3' id='6' onClick={handleClick}>
           <GiCancel className='w-10 h-10 lg:w-20 lg:h-20 md:w-16 md:h-16' color='#cc0000' />
         </button>
-        <button title='連接伺服器' className='ml-1 md:ml-2' onClick={handleClick}>
+        <button title='連接伺服器' className='ml-1 md:ml-2' id='7' onClick={handleClick}>
           <TbPlugConnected className='w-10 h-10 lg:w-20 lg:h-20 md:w-16 md:h-16' color='#99ff33' />
         </button>
-        <button title='中斷伺服器' className='-ml-1 md:-ml-2' onClick={handleClick}>
+        <button title='中斷伺服器' className='-ml-1 md:-ml-2' id='8' onClick={handleClick}>
           <TbPlugConnectedX className='w-10 h-10 lg:w-20 lg:h-20 md:w-16 md:h-16' color='#ff6600' />
         </button>
       </div>
