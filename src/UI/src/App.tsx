@@ -5,10 +5,10 @@ import { SendStatusType } from '@constants';
 const App = () => {
   const [message, setMessage] = useState<string>('');
   const [sendStatus, setSendStatus] = useState<SendStatusType[]>([]);
-  const [connectStatusOpen, setConnectStatusOpen] = useState<boolean>(false);
-  const [localfileListOpen, setLocalFileListOpen] = useState<boolean>(false);
-  const [remoteFileListOpen, setRemoteFileListOpen] = useState<boolean>(false);
-  const [sendStatusOpen, setSendStatusOpen] = useState<boolean>(false);
+  const [connectStatusOpen, setConnectStatusOpen] = useState<boolean>(true);
+  const [localfileListOpen, setLocalFileListOpen] = useState<boolean>(true);
+  const [remoteFileListOpen, setRemoteFileListOpen] = useState<boolean>(true);
+  const [sendStatusOpen, setSendStatusOpen] = useState<boolean>(true);
   const toggleConnectStatusOpen = () => setConnectStatusOpen(!connectStatusOpen);
   const toggleLocalFileListOpen = () => setLocalFileListOpen(!localfileListOpen);
   const toggleSendStatusOpen = () => setSendStatusOpen(!sendStatusOpen);
