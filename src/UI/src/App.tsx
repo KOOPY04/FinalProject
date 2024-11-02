@@ -19,6 +19,7 @@ const App = () => {
   //   localfileListOpen || remoteFileListOpen ? '1fr' : '0',
   //   sendStatusOpen ? 'auto' : '0',
   // ].join(' ');
+  console.log(localfileListOpen, remoteFileListOpen);
   return (
     //
     // style={{ gridTemplateRows }}
@@ -42,9 +43,14 @@ const App = () => {
           <FileList setSendStatus={setSendStatus} />
         </div>
       </div> */}
+
       {(localfileListOpen || remoteFileListOpen) && (
         <div className='grid grid-cols-1 gap-1'>
-          <FileList setSendStatus={setSendStatus} />
+          <FileList
+            setSendStatus={setSendStatus}
+            localOpen={localfileListOpen}
+            remoteOpen={remoteFileListOpen}
+          />
         </div>
       )}
       {sendStatusOpen && (
