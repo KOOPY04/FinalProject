@@ -13,15 +13,16 @@ const App = () => {
   const toggleLocalFileListOpen = () => setLocalFileListOpen(!localfileListOpen);
   const toggleSendStatusOpen = () => setSendStatusOpen(!sendStatusOpen);
   const toggleRemoteFileListOpen = () => setRemoteFileListOpen(!remoteFileListOpen);
-  const gridTemplateRows = [
-    'auto',
-    connectStatusOpen ? 'auto' : '0',
-    localfileListOpen || remoteFileListOpen ? '1fr' : '0',
-    sendStatusOpen ? 'auto' : '0',
-  ].join(' ');
+  // const gridTemplateRows = [
+  //   'auto',
+  //   connectStatusOpen ? 'auto' : '0',
+  //   localfileListOpen || remoteFileListOpen ? '1fr' : '0',
+  //   sendStatusOpen ? 'auto' : '0',
+  // ].join(' ');
   return (
-    // grid-rows-[auto_auto_2fr_auto]
-    <div className='grid h-screen min-w-full gap-1 p-2 bg-gray-700' style={{ gridTemplateRows }}>
+    //
+    // style={{ gridTemplateRows }}
+    <div className='grid grid-rows-[auto_auto_2fr_auto] h-screen min-w-full gap-1 p-2 bg-gray-700'>
       <div>
         <ToolBar
           toggleConnectStatusOpen={toggleConnectStatusOpen}
