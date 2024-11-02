@@ -10,13 +10,12 @@ interface SendStatusProps {
   }[];
 }
 
-
 const SendStatus: React.FC<SendStatusProps> = ({ sendStatus }) => {
   console.log(sendStatus);
   return (
-    <div className='w-full h-full p-2 pb-4 bg-gray-500 border rounded box-border'>
+    <div className='box-border w-full h-full p-2 pb-4 bg-gray-500 border rounded'>
       {/* 標題欄 */}
-      <div className='grid grid-cols-5 gap-1 bg-gray-600 text-white p-2 border rounded box-border'>
+      <div className='box-border grid grid-cols-5 gap-1 p-2 text-white bg-gray-600 border rounded'>
         <div className='col-span-1 truncate'>檔案名稱</div>
         <div className='col-span-1 truncate'>檔案大小/本地檔案</div>
         <div className='col-span-1 truncate'>方向</div>

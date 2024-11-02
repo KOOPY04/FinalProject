@@ -8,10 +8,21 @@ import {
 import { TfiReload } from 'react-icons/tfi';
 import { GiCancel } from 'react-icons/gi';
 import { TbPlugConnected, TbPlugConnectedX } from 'react-icons/tb';
-import { useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Button, Input, List, Modal, Space } from 'antd';
 type DataItem = { name: string; host: string; user: string; password: string; port: string };
-const ToolBar = () => {
+interface ToolBarProps {
+  toggleConnectStatusOpen: () => void;
+  toggleLocalFileListOpen: () => void;
+  toggleSendStatusOpen: () => void;
+  toggleRemoteFileListOpen: () => void;
+}
+const ToolBar: React.FC<ToolBarProps> = ({
+  toggleConnectStatusOpen,
+  toggleLocalFileListOpen,
+  toggleSendStatusOpen,
+  toggleRemoteFileListOpen,
+}) => {
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [dataList, setDataList] = useState(() => {
     const savedData = localStorage.getItem('dataList');
@@ -48,8 +59,22 @@ const ToolBar = () => {
     }
   };
   const handleClick = (e: React.MouseEvent<HTMLButtonElement>) => {
-    const title = e.currentTarget.getAttribute('title');
-    console.log(`Button clicked: ${title}`);
+    const id = e.currentTarget.getAttribute('id');
+    console.log(`Button clicked: ${id}`);
+    switch (id) {
+      case '1':
+        toggleConnectStatusOpen();
+        break;
+      case '2':
+        toggleLocalFileListOpen();
+        break;
+      case '3':
+        toggleRemoteFileListOpen();
+        break;
+      case '4':
+        toggleSendStatusOpen();
+        break;
+    }
   };
 
   const handleEdit = (item: DataItem) => {
@@ -169,19 +194,19 @@ const ToolBar = () => {
         </Modal>
       </div>
       <div className='flex items-center gap-1'>
-        <button title='連線紀錄' onClick={handleClick}>
+        <button title='連線紀錄' id='1' onClick={handleClick}>
           <RiInformation2Fill
             className='w-12 h-12 lg:w-20 lg:h-20 md:w-16 md:h-16'
             color='#ffc800'
           />
         </button>
-        <button title='切換本地目錄樹' onClick={handleClick}>
+        <button title='切換本地目錄樹' id='2' onClick={handleClick}>
           <RiIndentDecrease className='w-12 h-12 lg:w-20 lg:h-20 md:w-16 md:h-16' color='#7acf6a' />
         </button>
-        <button title='切換遠端目錄樹' onClick={handleClick}>
+        <button title='切換遠端目錄樹' id='3' onClick={handleClick}>
           <RiIndentIncrease className='w-12 h-12 lg:w-20 lg:h-20 md:w-16 md:h-16' color='#87A2FF' />
         </button>
-        <button title='檔案傳輸過程' onClick={handleClick}>
+        <button title='檔案傳輸過程' id='4' onClick={handleClick}>
           <RiArrowLeftRightFill
             className='w-12 h-12 lg:w-20 lg:h-20 md:w-16 md:h-16'
             color='#5ba4a4'
