@@ -15,6 +15,8 @@ class Api:
             self.local_storage_dir, "downloads")
         self.client_upload_dir = os.path.join(
             self.remote_storage_dir, "uploads")
+        self.save_dir = os.path.join(base_dir, "Data")
+        self.hostfile = os.path.join(self.save_dir, "host.json")
 
         self.path_mapping = {
             "downloads": self.client_download_dir,
@@ -24,6 +26,23 @@ class Api:
         }
         self.isLogin = False
         self.client = None
+        if not os.path.exists(self.hostfile):
+            with open(self.hostfile, 'w') as f:
+                json.dump([], f)
+
+    def read_host(self):
+        with open(self.hostfile, 'r') as f:
+            return json.load(f)
+
+    def save_host(self, data):
+        print(data)
+        print(type(data))
+        try:
+            with open(self.hostfile, 'w') as f:
+                json.dump(data, f, indent=4)
+            return {'status': 'success'}
+        except Exception as e:
+            return {'status': 'error', 'message': str(e)}
 
     def hasLogin(self):
         return self.isLogin

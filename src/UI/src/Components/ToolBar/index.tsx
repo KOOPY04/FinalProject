@@ -29,34 +29,42 @@ const ToolBar: React.FC<ToolBarProps> = ({
   handleReload,
 }) => {
   const [isModalVisible, setIsModalVisible] = useState(false);
-  const [dataList, setDataList] = useState(() => {
-    const savedData = localStorage.getItem('dataList');
-    return savedData ? JSON.parse(savedData) : [];
-  });
-  const [host, setHost] = useState('');
+  const [dataList, setDataList] = useState<DataItem[]>([]);
+  const [host, setHost] = useState('127.0.0.1');
   const [name, setName] = useState('');
   const [password, setPassword] = useState('');
-  const [port, setPort] = useState('');
+  const [port, setPort] = useState('50051');
   const [user, setUser] = useState('');
   const [passwordVisible, setPasswordVisible] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
   const { setIsLogining, setMessage } = useGlobalState();
   useEffect(() => {
-    localStorage.setItem('dataList', JSON.stringify(dataList));
-  }, [dataList]);
+    const fetchData = async () => {
+      const response = await window.pywebview.api.read_host();
+      setDataList(response || []);
+    };
+    fetchData();
+  }, []);
 
-  const handleAdd = () => {
+  const handleAdd = async () => {
     if (host.trim() && user.trim() && password.trim() && port.trim()) {
       const isEditing = dataList.some((item: DataItem) => item.host === host);
-      if (isEditing) {
-        setDataList(
-          dataList.map((item: DataItem) =>
-            item.name === name ? { host, user, password, port } : item,
-          ),
-        );
-      } else {
-        setDataList([...dataList, { name: name.trim(), host: host.trim(), user, password, port }]);
-      }
+      setDataList((prevDataList) => {
+        let updatedDataList: DataItem[];
+        if (isEditing) {
+          updatedDataList = prevDataList.map((item) =>
+            item.host === host ? { name, host, user, password, port } : item,
+          );
+        } else {
+          updatedDataList = [
+            ...prevDataList,
+            { name: name.trim(), host: host.trim(), user, password, port },
+          ];
+        }
+        window.pywebview.api.save_host(updatedDataList);
+        console.log('Data saved:', updatedDataList);
+        return updatedDataList;
+      });
       setHost('');
       setUser('');
       setPassword('');
@@ -120,14 +128,16 @@ const ToolBar: React.FC<ToolBarProps> = ({
   const handleConnect = (item: DataItem) => {
     console.log(`Connecting to ${item.host}`);
   };
-  const handleDelete = (item: DataItem) => {
-    setDataList(dataList.filter((i: DataItem) => i.host !== item.host));
+  const handleDelete = async (item: DataItem) => {
+    const updatedDataList = dataList.filter((i: DataItem) => i.host !== item.host);
+    setDataList(updatedDataList);
+    await window.pywebview.api.save_host(updatedDataList);
   };
   const onClose = () => {
-    setHost('');
+    setHost('127.0.0.1');
     setUser('');
     setPassword('');
-    setPort('');
+    setPort('50051');
     setName('');
     setIsEditing(false);
     setIsModalVisible(false);
