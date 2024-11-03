@@ -3,7 +3,6 @@ import { useState } from 'react';
 import { SendStatusType } from '@constants';
 
 const App = () => {
-  const [message, setMessage] = useState<string>('');
   const [sendStatus, setSendStatus] = useState<SendStatusType[]>([]);
   const [connectStatusOpen, setConnectStatusOpen] = useState<boolean>(true);
   const [localfileListOpen, setLocalFileListOpen] = useState<boolean>(true);
@@ -30,11 +29,11 @@ const App = () => {
           toggleRemoteFileListOpen={toggleRemoteFileListOpen}
           toggleSendStatusOpen={toggleSendStatusOpen}
         />
-        <Login setMessage={setMessage} />
+        <Login />
       </div>
       {connectStatusOpen && (
         <div className='h-28'>
-          <ConnectStatus message={message} />
+          <ConnectStatus />
         </div>
       )}
       {(localfileListOpen || remoteFileListOpen) && (

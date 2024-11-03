@@ -2,6 +2,8 @@ from typing import NoReturn
 import webview
 import os
 import json
+
+
 class Api:
     def __init__(self, args: list[str], base_dir=os.path.dirname(os.path.dirname(os.path.abspath(__file__)))):
         from .client import Client
@@ -22,6 +24,9 @@ class Api:
         }
         self.isLogin = False
         self.client = None
+
+    def hasLogin(self):
+        return self.isLogin
 
     def login(self, host: str, port: str, username: str, password: str) -> str:
         self.client = self.client_obj(f"{host}:{port}")
@@ -148,4 +153,3 @@ def client_test(args: list[str]) -> NoReturn:
     webview.create_window(
         'File Uploader', index_path, js_api=api, resizable=True, width=1000, height=885)
     webview.start(debug=True)
-

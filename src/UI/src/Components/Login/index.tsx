@@ -1,14 +1,12 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { CheckEnv } from '@constants';
-interface LoginProps {
-  setMessage: (message: string) => void;
-}
-
-const Login: React.FC<LoginProps> = ({ setMessage }) => {
+import { useGlobalState } from '@site/GlobalStateContext';
+const Login = () => {
   const [Host, setHost] = useState<string>('127.0.0.1');
   const [Username, setUsername] = useState<string>('');
   const [Password, setPassword] = useState<string>('');
   const [Port, setPort] = useState<string>('50051');
+  const { setIsLogining, setMessage } = useGlobalState();
   const Connect = () => {
     CheckEnv(async () => {
       if (Host === '' || Port === '' || Username === '' || Password === '') {
@@ -19,7 +17,10 @@ const Login: React.FC<LoginProps> = ({ setMessage }) => {
       const data = JSON.parse(ret);
       if ('error' in data) {
         setMessage(data.error);
-      } else setMessage(data.message);
+      } else {
+        setMessage(data.message);
+        setIsLogining(true);
+      }
     });
   };
   return (

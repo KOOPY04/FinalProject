@@ -7,13 +7,24 @@ type SendStatusType = {
   remotePath: string;
   status: string;
 };
-function CheckEnv(fn?: (...args: any[]) => Promise<void> | void, ...args: any[]) {
-  const ret = window.pywebview ? true : false;
-  if (ret && fn) {
-    fn(...args);
+async function CheckEnv(
+  fn?: (...args: any[]) => Promise<void> | void,
+  ...args: any[]
+): Promise<void> {
+  const isPyWebviewEnv = Boolean(window.pywebview);
+
+  if (isPyWebviewEnv) {
+    if (typeof fn === 'function') {
+      try {
+        await fn(...args); // 如果 fn 是異步函數，這裡會等待其完成
+      } catch (error) {
+        console.error('Error executing the provided function:', error);
+      }
+    } else {
+      console.error('Provided function is not valid.');
+    }
   } else {
-    if (!ret) console.error('Please use pywebview environment');
-    if (fn) console.error('Function is not provided');
+    console.error('Please use pywebview environment');
   }
 }
 export type { SendStatusType, SetSendStatus };

@@ -1,14 +1,11 @@
-import React, { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { List, Space } from 'antd';
+import { useGlobalState } from '@site/GlobalStateContext';
 
-interface ConnectStatusProps {
-  message: string;
-}
-
-const ConnectStatus: React.FC<ConnectStatusProps> = ({ message }) => {
+const ConnectStatus = () => {
   const [messages, setMessages] = useState<string[]>([]);
   const listRef = useRef<HTMLDivElement>(null);
-
+  const { message } = useGlobalState();
   useEffect(() => {
     setMessages((prevMessages) => [...prevMessages, message]);
   }, [message]);

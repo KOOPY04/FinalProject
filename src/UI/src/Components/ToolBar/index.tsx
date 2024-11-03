@@ -11,6 +11,7 @@ import { TbPlugConnected, TbPlugConnectedX } from 'react-icons/tb';
 import React, { useEffect, useState } from 'react';
 import { Button, Input, List, Modal, Space } from 'antd';
 import { CheckEnv } from '@constants';
+import { useGlobalState } from '@site/GlobalStateContext';
 type DataItem = { name: string; host: string; user: string; password: string; port: string };
 interface ToolBarProps {
   toggleConnectStatusOpen: () => void;
@@ -19,6 +20,7 @@ interface ToolBarProps {
   toggleRemoteFileListOpen: () => void;
   handleReload: () => void;
 }
+
 const ToolBar: React.FC<ToolBarProps> = ({
   toggleConnectStatusOpen,
   toggleLocalFileListOpen,
@@ -38,6 +40,7 @@ const ToolBar: React.FC<ToolBarProps> = ({
   const [user, setUser] = useState('');
   const [passwordVisible, setPasswordVisible] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
+  const { setIsLogining, setMessage } = useGlobalState();
   useEffect(() => {
     localStorage.setItem('dataList', JSON.stringify(dataList));
   }, [dataList]);
@@ -70,10 +73,10 @@ const ToolBar: React.FC<ToolBarProps> = ({
     console.log('Connecting to the last connected server...');
   };
   const handleDisconnect = async () => {
-    console.log('Disconnecting...');
     const ret: string = await window.pywebview.api.close();
     const data: Record<string, string> = JSON.parse(ret) as Record<string, string>;
-    console.log(data.message);
+    setMessage(data.message);
+    setIsLogining(false);
   };
   const handleClick = (e: React.MouseEvent<HTMLButtonElement>) => {
     const id = e.currentTarget.getAttribute('id');
