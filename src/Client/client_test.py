@@ -7,7 +7,6 @@ class Api:
         from .client import Client
         self.client_obj = Client
         self.base_dir = base_dir
-        # self.server_upload_dir = os.path.join(base_dir, "Data/uploads")
         self.local_storage_dir = os.path.join(base_dir, "Data/localStorage")
         self.remote_storage_dir = os.path.join(base_dir, "Data/remoteStorage")
         self.client_download_dir = os.path.join(
@@ -22,8 +21,6 @@ class Api:
             "remoteStorage": self.remote_storage_dir
         }
         self.isLogin = False
-
-        # self.connect_address = Parser(args).connect_address()
         self.client = None
 
     def login(self, host: str, port: str, username: str, password: str) -> str:
