@@ -9,23 +9,22 @@ const App = () => {
   const [localfileListOpen, setLocalFileListOpen] = useState<boolean>(true);
   const [remoteFileListOpen, setRemoteFileListOpen] = useState<boolean>(true);
   const [sendStatusOpen, setSendStatusOpen] = useState<boolean>(true);
+  const [fileTreeKey, setFileTreeKey] = useState(0);
+
+  const handleReload = () => {
+    console.log('Reloading...');
+    setFileTreeKey((prevKey) => prevKey + 1);
+  };
   const toggleConnectStatusOpen = () => setConnectStatusOpen(!connectStatusOpen);
   const toggleLocalFileListOpen = () => setLocalFileListOpen(!localfileListOpen);
   const toggleSendStatusOpen = () => setSendStatusOpen(!sendStatusOpen);
   const toggleRemoteFileListOpen = () => setRemoteFileListOpen(!remoteFileListOpen);
-  // const gridTemplateRows = [
-  //   'auto',
-  //   connectStatusOpen ? 'auto' : '0',
-  //   localfileListOpen || remoteFileListOpen ? '1fr' : '0',
-  //   sendStatusOpen ? 'auto' : '0',
-  // ].join(' ');
   console.log(localfileListOpen, remoteFileListOpen);
   return (
-    //
-    // style={{ gridTemplateRows }}
     <div className='grid grid-rows-[auto_auto_2fr_auto] h-screen min-w-full gap-1 p-2 bg-gray-700'>
       <div>
         <ToolBar
+          handleReload={handleReload}
           toggleConnectStatusOpen={toggleConnectStatusOpen}
           toggleLocalFileListOpen={toggleLocalFileListOpen}
           toggleRemoteFileListOpen={toggleRemoteFileListOpen}
@@ -38,15 +37,10 @@ const App = () => {
           <ConnectStatus message={message} />
         </div>
       )}
-      {/* <div className='grid grid-rows-1 gap-1'>
-        <div className='grid grid-cols-1 gap-1'>
-          <FileList setSendStatus={setSendStatus} />
-        </div>
-      </div> */}
-
       {(localfileListOpen || remoteFileListOpen) && (
         <div className='grid grid-cols-1 gap-1'>
           <FileList
+            key={fileTreeKey}
             setSendStatus={setSendStatus}
             localOpen={localfileListOpen}
             remoteOpen={remoteFileListOpen}

@@ -2,10 +2,6 @@ from typing import NoReturn
 import webview
 import os
 import json
-
-from Utils.parser import Parser
-
-
 class Api:
     def __init__(self, args: list[str], base_dir=os.path.dirname(os.path.dirname(os.path.abspath(__file__)))):
         from .client import Client

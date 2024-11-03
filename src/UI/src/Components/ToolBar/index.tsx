@@ -10,18 +10,21 @@ import { GiCancel } from 'react-icons/gi';
 import { TbPlugConnected, TbPlugConnectedX } from 'react-icons/tb';
 import React, { useEffect, useState } from 'react';
 import { Button, Input, List, Modal, Space } from 'antd';
+import { CheckEnv } from '@constants';
 type DataItem = { name: string; host: string; user: string; password: string; port: string };
 interface ToolBarProps {
   toggleConnectStatusOpen: () => void;
   toggleLocalFileListOpen: () => void;
   toggleSendStatusOpen: () => void;
   toggleRemoteFileListOpen: () => void;
+  handleReload: () => void;
 }
 const ToolBar: React.FC<ToolBarProps> = ({
   toggleConnectStatusOpen,
   toggleLocalFileListOpen,
   toggleSendStatusOpen,
   toggleRemoteFileListOpen,
+  handleReload,
 }) => {
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [dataList, setDataList] = useState(() => {
@@ -58,11 +61,6 @@ const ToolBar: React.FC<ToolBarProps> = ({
       setName('');
     }
   };
-  const handleRealod = () => {
-    //if login status is true then reload the LocalFileList and RemoteFileList
-    //else only reload LocalFileList
-    console.log('Reloading...');
-  };
   const handleCancel = () => {
     //Cancel the current operation
     console.log('Cancelling...');
@@ -71,36 +69,38 @@ const ToolBar: React.FC<ToolBarProps> = ({
     //Connect to the last connected server
     console.log('Connecting to the last connected server...');
   };
-  const handleDisconnect = () => {
-    //Disconnect the current server
+  const handleDisconnect = async () => {
     console.log('Disconnecting...');
+    const ret: string = await window.pywebview.api.close();
+    const data: Record<string, string> = JSON.parse(ret) as Record<string, string>;
+    console.log(data.message);
   };
   const handleClick = (e: React.MouseEvent<HTMLButtonElement>) => {
     const id = e.currentTarget.getAttribute('id');
     switch (id) {
-      case '1': //ConnectStatus
+      case '1':
         toggleConnectStatusOpen();
         break;
-      case '2': //LocalFileList
+      case '2':
         toggleLocalFileListOpen();
         break;
-      case '3': //RemoteFileList
+      case '3':
         toggleRemoteFileListOpen();
         break;
-      case '4': //SendStatus
+      case '4':
         toggleSendStatusOpen();
         break;
-      case '5': //Reload
-        handleRealod();
+      case '5':
+        CheckEnv(handleReload);
         break;
-      case '6': //Cancel
-        handleCancel();
+      case '6':
+        CheckEnv(handleCancel);
         break;
-      case '7': //Connect
-        handleLastLogin();
+      case '7':
+        CheckEnv(handleLastLogin);
         break;
-      case '8': //Disconnect
-        handleDisconnect();
+      case '8':
+        CheckEnv(handleDisconnect);
         break;
     }
   };
