@@ -3,7 +3,7 @@ import { Tree } from 'antd';
 import type { TreeDataNode } from 'antd';
 import { Menu, Item, contextMenu } from 'react-contexify';
 import 'react-contexify/dist/ReactContexify.css';
-import type {SetSendStatus } from '@constants';
+import { useGlobalState } from '@site/GlobalStateContext';
 
 const { DirectoryTree } = Tree;
 
@@ -11,7 +11,6 @@ interface FileTreeProps {
   initialTreeData?: TreeDataNode[];
   isLocal: boolean;
   onNodeSelect?: (key: React.Key, node: TreeDataNode) => void;
-  setSendStatus: SetSendStatus;
 }
 
 const getMenuIds = (isLocal: boolean) => ({
@@ -62,17 +61,16 @@ const FileTree: React.FC<FileTreeProps> = ({
   ],
   isLocal,
   onNodeSelect,
-  setSendStatus,
 }: FileTreeProps) => {
   const [treeData, setTreeData] = useState<TreeDataNode[]>(initialTreeData);
   const [expandedKeys, setExpandedKeys] = useState<React.Key[]>([]);
   const [selectedNodeTitle, setSelectedNodeTitle] = useState<string>('');
   const [rightClickNodeKey, setRightClickNodeKey] = useState<React.Key | null>(null);
+  const { setSendStatus } = useGlobalState();
   const menuIds = getMenuIds(isLocal);
   useEffect(() => {
     setExpandedKeys(isLocal ? ['localStorage'] : ['remoteStorage']);
   }, [isLocal]);
-
 
   const handleFileAction = async (action: string, node: TreeDataNode) => {
     const filePath = node.key;
@@ -84,13 +82,19 @@ const FileTree: React.FC<FileTreeProps> = ({
       return;
     }
 
-    const fileSizeKB = `${size.size }`;
+    const fileSizeKB = `${size.size}`;
     const direction = action === '上傳檔案' ? '上傳' : '下載';
     const remotePath = isLocal ? '' : `/remote/path/${node.title}`;
 
     setSendStatus((prev) => [
       ...prev,
-      { fileName: String(node.title), fileSize: fileSizeKB, direction, remotePath, status: '傳送中' },
+      {
+        fileName: String(node.title),
+        fileSize: fileSizeKB,
+        direction,
+        remotePath,
+        status: '傳送中',
+      },
     ]);
 
     if (action === '上傳檔案') {

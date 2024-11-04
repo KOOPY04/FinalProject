@@ -1,18 +1,14 @@
 import React from 'react';
 import FileTree from './FileTree';
 import { TreeDataNode, Empty } from 'antd';
-import type { SetSendStatus } from '@constants';
 import { useGlobalState } from '@site/GlobalStateContext';
 
-interface RemoteProps {
-  setSendStatus: SetSendStatus;
-}
 
 const handleNodeSelect = (key: React.Key, _: TreeDataNode) => {
   console.log('Selected remote node key:', key);
 };
 
-const Remote = ({ setSendStatus }: RemoteProps) => {
+const Remote = () => {
   const { isLogining } = useGlobalState();
   const initialTreeData = [
     {
@@ -30,7 +26,6 @@ const Remote = ({ setSendStatus }: RemoteProps) => {
           onNodeSelect={handleNodeSelect}
           initialTreeData={initialTreeData}
           isLocal={false}
-          setSendStatus={setSendStatus}
         />
       )}
     </div>
