@@ -1,9 +1,7 @@
 import { ToolBar, Login, ConnectStatus, FileList, SendStatus } from '@components';
 import { useState } from 'react';
-import { SendStatusType } from '@constants';
 
 const App = () => {
-  const [sendStatus, setSendStatus] = useState<SendStatusType[]>([]);
   const [connectStatusOpen, setConnectStatusOpen] = useState<boolean>(true);
   const [localfileListOpen, setLocalFileListOpen] = useState<boolean>(true);
   const [remoteFileListOpen, setRemoteFileListOpen] = useState<boolean>(true);
@@ -40,7 +38,6 @@ const App = () => {
         <div className='grid grid-cols-1 gap-1'>
           <FileList
             key={fileTreeKey}
-            setSendStatus={setSendStatus}
             localOpen={localfileListOpen}
             remoteOpen={remoteFileListOpen}
           />
@@ -48,7 +45,7 @@ const App = () => {
       )}
       {sendStatusOpen && (
         <div className='h-28'>
-          <SendStatus sendStatus={sendStatus} />
+          <SendStatus  />
         </div>
       )}
     </div>

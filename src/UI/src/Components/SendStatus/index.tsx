@@ -1,16 +1,7 @@
-import React from 'react';
+import { useGlobalState } from '@site/GlobalStateContext';
 
-interface SendStatusProps {
-  sendStatus: {
-    fileName: string;
-    fileSize: string;
-    direction: string;
-    remotePath: string;
-    status: string;
-  }[];
-}
-
-const SendStatus: React.FC<SendStatusProps> = ({ sendStatus }) => {
+const SendStatus = () => {
+  const { sendStatus } = useGlobalState();
   console.log(sendStatus);
   return (
     <div className='box-border w-full h-full p-2 pb-4 bg-gray-500 border rounded'>
