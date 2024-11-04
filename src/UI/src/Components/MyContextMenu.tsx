@@ -11,14 +11,14 @@ type MenuItem = {
 
 interface ContextMenuProps {
   menus: {
-    id: string; // 唯一的菜單 ID
-    menuItems: MenuItem[]; // 菜單項
+    id: string; 
+    menuItems: MenuItem[]; 
   }[];
-  onItemClick: (params: ItemParams) => void; // 點擊菜單項的處理器
+  onItemClick: (params: ItemParams) => void; 
   divs: {
-    id: string; // 唯一的 div ID
-    content: string; // div 的內容
-    menuId: string; // 對應的菜單 ID
+    id: string; 
+    content: string;
+    menuId: string;
   }[];
 }
 
@@ -34,7 +34,7 @@ function MultiDivContextMenu({ menus, onItemClick, divs }: ContextMenuProps) {
     setClickedText(text);
 
     const { show } = useContextMenu({
-      id: menuId, // 顯示對應的菜單
+      id: menuId, 
     });
 
     show({
@@ -80,8 +80,6 @@ function MultiDivContextMenu({ menus, onItemClick, divs }: ContextMenuProps) {
           {renderMenuItems(menu.menuItems)}
         </Menu>
       ))}
-
-      {/* 顯示當前被點擊的文本 */}
       {clickedText && <p>Current clicked text: {clickedText}</p>}
     </div>
   );
