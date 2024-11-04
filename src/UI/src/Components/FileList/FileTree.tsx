@@ -84,7 +84,15 @@ const FileTree: React.FC<FileTreeProps> = ({
 
     const fileSizeKB = `${size.size}`;
     const direction = action === '上傳檔案' ? '上傳' : '下載';
-    const remotePath = isLocal ? '' : `/remote/path/${node.title}`;
+    console.log(node.key);
+    const file_path = node.key as string;
+    const match = file_path.match(/(\/remoteStorage\/.+)/);
+    let desiredPath;
+    if (match) {
+      desiredPath = match[1];
+      console.log(desiredPath);
+    }
+    const remotePath = isLocal ? '' : `${desiredPath}`;
 
     setSendStatus((prev) => [
       ...prev,
