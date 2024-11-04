@@ -61,7 +61,7 @@ const ToolBar: React.FC<ToolBarProps> = ({
             { name: name.trim(), host: host.trim(), user, password, port },
           ];
         }
-        window.pywebview.api.save_host(updatedDataList);
+        
         console.log('Data saved:', updatedDataList);
         return updatedDataList;
       });

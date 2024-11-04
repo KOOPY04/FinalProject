@@ -16,7 +16,7 @@ async function CheckEnv(
   if (isPyWebviewEnv) {
     if (typeof fn === 'function') {
       try {
-        await fn(...args); // 如果 fn 是異步函數，這裡會等待其完成
+        await fn(...args); 
       } catch (error) {
         console.error('Error executing the provided function:', error);
       }
