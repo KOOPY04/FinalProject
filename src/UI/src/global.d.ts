@@ -9,6 +9,8 @@ interface Window {
       close(): Promise<string>;
       read_host(): Promise<Array>;
       save_host(data: Array): Promise<string>;
+      upload_file(path: React.Key): Promise<string>;
+      download_file(path: React.Key): Promise<string>;
     };
   };
 }

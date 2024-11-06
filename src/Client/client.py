@@ -1,4 +1,4 @@
-from os.path import dirname, join, splitext
+from os.path import dirname, join, splitext, basename
 from os import makedirs
 import grpc
 import sys
@@ -17,8 +17,10 @@ class Client:
         self.isLogin = False
         self.src_dir: str = dirname(dirname(__file__))
         self.data_dir: str = join(self.src_dir, "Data")
-        self.uploads_dir: str = join(self.data_dir, "uploads")
-        self.downloads_dir: str = join(self.data_dir, "downloads")
+        self.remote_dir: str = join(self.data_dir, "remoteStorage")
+        self.local_dir: str = join(self.data_dir, "localStorage")
+        self.downloads_dir: str = join(self.local_dir, "downloads")
+        self.uploads_dir: str = join(self.remote_dir, "uploads")
 
         makedirs(self.downloads_dir, exist_ok=True)
 
@@ -51,9 +53,7 @@ class Client:
         :parm file_path: 文件路徑
         :parm chunk_size: 塊大小
         """
-        split_data = splitext(file_path.split('/')[-1])
-        filename = split_data[0]
-        extension = split_data[1]
+        filename, extension = splitext(basename(file_path))
         metadata = hello_pb2.MetaData(filename=filename, extension=extension)
         yield hello_pb2.UploadFileRequest(metadata=metadata)
         with open(file_path, 'rb') as f:

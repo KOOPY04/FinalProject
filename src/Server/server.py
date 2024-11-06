@@ -16,6 +16,8 @@ class Greeter(hello_pb2_grpc.GreeterServicer):
         self.src_dir: str = dirname(dirname(__file__))
         self.data_dir: str = join(self.src_dir, "Data")
         self.remote_dir: str = join(self.data_dir, "remoteStorage")
+        self.local_dir: str = join(self.data_dir, "localStorage")
+        self.downloads_dir: str = join(self.local_dir, "downloads")
         self.uploads_dir: str = join(self.remote_dir, "uploads")
         self.chunk_size: int = 1024
 

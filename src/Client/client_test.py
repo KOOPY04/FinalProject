@@ -93,10 +93,21 @@ class Api:
         return json.dumps({"error": "File not found"})
 
     def upload_file(self, file_path: str) -> str:
-        pass
+        if not self.isLogin:
+            return False
+        response = self.client.upload_file(file_path)
+        if not response:
+            return json.dumps({"error": "Upload failed"})
+        return json.dumps({"message": "Upload successful"})
 
     def download_file(self, file_path: str) -> str:
-        pass
+        if not self.isLogin:
+            return False
+        file_name, extension = os.path.splitext(os.path.basename(file_path))
+        response = self.client.download_file(file_name, extension)
+        if not response:
+            return json.dumps({"error": "Download failed"})
+        return json.dumps({"message": "Download successful"})
 
     def delete_file(self, file_path: str) -> str:
         pass

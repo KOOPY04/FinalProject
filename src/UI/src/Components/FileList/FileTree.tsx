@@ -105,17 +105,39 @@ const FileTree: React.FC<FileTreeProps> = ({
       },
     ]);
 
-    if (action === '上傳檔案') {
-      await window.pywebview.api.get_local_children(filePath);
-    } else if (action === '下載檔案') {
-      await window.pywebview.api.get_server_children(filePath);
+    try {
+      if (action === '上傳檔案') {
+        await window.pywebview.api.upload_file(filePath);
+      } else if (action === '下載檔案') {
+        await window.pywebview.api.download_file(filePath);
+      }
+
+      const checkFileSize = await window.pywebview.api.get_file_size(filePath);
+      const checkSize = JSON.parse(checkFileSize);
+
+      if (checkSize.error) {
+        throw new Error(checkSize.error);
+      }
+
+      setSendStatus((prev) =>
+        prev.map((item) =>
+          item.fileName === String(node.title) ? { ...item, status: '完成' } : item,
+        ),
+      );
+    } catch (error) {
+      console.error('File action failed:', error);
+
+      setSendStatus((prev) =>
+        prev.map((item) =>
+          item.fileName === String(node.title) ? { ...item, status: '失敗' } : item,
+        ),
+      );
     }
 
-    setSendStatus((prev) =>
-      prev.map((item) =>
-        item.fileName === String(node.title) ? { ...item, status: '完成' } : item,
-      ),
-    );
+    const updatedChildren = isLocal
+      ? await fetchLocalChildren(node.key)
+      : await fetchRemoteChildren(node.key);
+    setTreeData((origin) => updateTreeData(origin, node.key, updatedChildren));
   };
 
   const FileMenu = ({ isLocal, menuId }: { isLocal: boolean; menuId: string }) => (
