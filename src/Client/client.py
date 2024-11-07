@@ -1,4 +1,5 @@
-from os.path import dirname, join, splitext, basename
+
+from os.path import dirname, join, splitext, basename, exists
 from os import makedirs
 import grpc
 import sys
@@ -53,18 +54,23 @@ class Client:
         :parm file_path: 文件路徑
         :parm chunk_size: 塊大小
         """
+        # split_data = splitext(file_path.split('/')[-1])
+        # filename = split_data[0]
+        # extension = split_data[1]
         filename, extension = splitext(basename(file_path))
+        print(f"Uploading file: {filename}{extension}")
         metadata = hello_pb2.MetaData(filename=filename, extension=extension)
         yield hello_pb2.UploadFileRequest(metadata=metadata)
+        
         with open(file_path, 'rb') as f:
             while True:
                 chunk = f.read(chunk_size)
                 if chunk:
-                    entry_request = hello_pb2.UploadFileRequest(
-                        chunk_data=chunk)
+                    entry_request = hello_pb2.UploadFileRequest(chunk_data=chunk)
                     yield entry_request
                 else:
                     break
+
 
     def upload_file(self, file_path: str, chunk_size: int = 1024) -> str:
         """

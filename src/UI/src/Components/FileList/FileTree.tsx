@@ -25,21 +25,23 @@ const FolderMenu = ({
   nodeTitle,
   isLocal,
   menuId,
+  disableMenu,
 }: {
   nodeKey: React.Key;
   onOpenFolder: (key: React.Key) => void;
   nodeTitle: string;
   isLocal: boolean;
   menuId: string;
+  disableMenu: boolean;
 }) => (
   <Menu id={menuId}>
-    <Item onClick={() => onOpenFolder(nodeKey)}>開啟資料夾</Item>
-    <Item onClick={() => console.log(isLocal ? '新增檔案' : '新增遠端檔案')}>
+    <Item onClick={() => onOpenFolder(nodeKey)} disabled={disableMenu}>開啟資料夾</Item>
+    <Item onClick={() => console.log(isLocal ? '新增檔案' : '新增遠端檔案')} disabled={disableMenu}>
       {isLocal ? '新增檔案' : '新增遠端檔案'}
     </Item>
     <Item
       onClick={() => console.log('刪除資料夾')}
-      disabled={
+      disabled={disableMenu ||
         nodeTitle === '根目錄' ||
         nodeTitle === '遠端根目錄' ||
         nodeTitle === 'downloads' ||
@@ -121,7 +123,9 @@ const FileTree: React.FC<FileTreeProps> = ({
 
       setSendStatus((prev) =>
         prev.map((item) =>
-          item.fileName === String(node.title) ? { ...item, status: '完成' } : item,
+          item.fileName === String(node.title) && item.direction === direction
+            ? { ...item, status: '完成' }
+            : item
         ),
       );
     } catch (error) {
@@ -129,7 +133,9 @@ const FileTree: React.FC<FileTreeProps> = ({
 
       setSendStatus((prev) =>
         prev.map((item) =>
-          item.fileName === String(node.title) ? { ...item, status: '失敗' } : item,
+          item.fileName === String(node.title) && item.direction === direction
+            ? { ...item, status: '失敗' }
+            : item
         ),
       );
     }
@@ -140,11 +146,11 @@ const FileTree: React.FC<FileTreeProps> = ({
     setTreeData((origin) => updateTreeData(origin, node.key, updatedChildren));
   };
 
-  const FileMenu = ({ isLocal, menuId }: { isLocal: boolean; menuId: string }) => (
+  const FileMenu = ({ isLocal, menuId, disableMenu }: { isLocal: boolean; menuId: string; disableMenu: boolean }) => (
     <Menu id={menuId}>
-      <Item onClick={() => console.log('開啟檔案')}>開啟檔案</Item>
-      <Item onClick={() => console.log('刪除檔案')}>刪除檔案</Item>
-      <Item onClick={(e) => handleFileAction(isLocal ? '上傳檔案' : '下載檔案', e.props.node)}>
+      <Item onClick={() => console.log('開啟檔案')} disabled={disableMenu}>開啟檔案</Item>
+      <Item onClick={() => console.log('刪除檔案')} disabled={disableMenu}>刪除檔案</Item>
+      <Item onClick={(e) => handleFileAction(isLocal ? '上傳檔案' : '下載檔案', e.props.node)} disabled={disableMenu}>
         {isLocal ? '上傳檔案' : '下載檔案'}
       </Item>
     </Menu>
@@ -235,23 +241,35 @@ const FileTree: React.FC<FileTreeProps> = ({
 
   const handleContextMenu = (event: React.MouseEvent, node: TreeDataNode) => {
     event.preventDefault();
+
+    // 檢查是否為無檔案的節點
+    if (String(node.key).includes('-empty') || (node.children && node.children.length === 0)) {
+      return; // 如果是無檔案節點則不顯示右鍵選單
+    }
+
     const nodeTitle = typeof node.title === 'string' ? node.title : String(node.title);
     setSelectedNodeTitle(nodeTitle);
     setRightClickNodeKey(node.key);
+
+    const isEmptyNode = node.children && node.children.length === 0;
+
     if (node.isLeaf) {
       contextMenu.show({
         id: menuIds.fileMenuId,
         event: event,
         props: {
           node,
+          disableMenu: isEmptyNode,
         },
       });
+
     } else {
       contextMenu.show({
         id: menuIds.folderMenuId,
         event: event,
         props: {
           node,
+          disableMenu: isEmptyNode,
         },
       });
     }
@@ -279,15 +297,14 @@ const FileTree: React.FC<FileTreeProps> = ({
         onRightClick={({ event, node }) => handleContextMenu(event, node)}
         onExpand={(expandedKeys) => setExpandedKeys(expandedKeys)}
       />
-      <FileMenu isLocal={isLocal} menuId={menuIds.fileMenuId} />
+      <FileMenu isLocal={isLocal} menuId={menuIds.fileMenuId} disableMenu={false} />
       {rightClickNodeKey !== null && (
         <FolderMenu
           nodeKey={rightClickNodeKey as string}
           onOpenFolder={handleOpenFolder}
           nodeTitle={selectedNodeTitle}
           isLocal={isLocal}
-          menuId={menuIds.folderMenuId}
-        />
+          menuId={menuIds.folderMenuId} disableMenu={false}        />
       )}
     </>
   );
