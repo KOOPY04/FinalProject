@@ -88,14 +88,13 @@ const FileTree: React.FC<FileTreeProps> = ({
     const direction = action === '上傳檔案' ? '上傳' : '下載';
     console.log(node.key);
     const file_path = node.key as string;
-    const match = file_path.match(/(\/remoteStorage\/.+)/);
+    const match = file_path.match(/(\\remoteStorage\\.+)/);
     let desiredPath;
     if (match) {
       desiredPath = match[1];
       console.log(desiredPath);
     }
     const remotePath = isLocal ? '' : `${desiredPath}`;
-
     setSendStatus((prev) => [
       ...prev,
       {
@@ -242,9 +241,9 @@ const FileTree: React.FC<FileTreeProps> = ({
   const handleContextMenu = (event: React.MouseEvent, node: TreeDataNode) => {
     event.preventDefault();
 
-    // 檢查是否為無檔案的節點
+
     if (String(node.key).includes('-empty') || (node.children && node.children.length === 0)) {
-      return; // 如果是無檔案節點則不顯示右鍵選單
+      return;
     }
 
     const nodeTitle = typeof node.title === 'string' ? node.title : String(node.title);
@@ -304,7 +303,7 @@ const FileTree: React.FC<FileTreeProps> = ({
           onOpenFolder={handleOpenFolder}
           nodeTitle={selectedNodeTitle}
           isLocal={isLocal}
-          menuId={menuIds.folderMenuId} disableMenu={false}        />
+          menuId={menuIds.folderMenuId} disableMenu={false} />
       )}
     </>
   );

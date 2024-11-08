@@ -9,8 +9,8 @@ class Api:
         from .client import Client
         self.client_obj = Client
         self.base_dir = base_dir
-        self.local_storage_dir = os.path.join(base_dir, "Data/localStorage")
-        self.remote_storage_dir = os.path.join(base_dir, "Data/remoteStorage")
+        self.local_storage_dir = os.path.join(base_dir, "Data\\localStorage")
+        self.remote_storage_dir = os.path.join(base_dir, "Data\\remoteStorage")
         self.client_download_dir = os.path.join(
             self.local_storage_dir, "downloads")
         self.client_upload_dir = os.path.join(
