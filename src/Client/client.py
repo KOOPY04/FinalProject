@@ -57,7 +57,6 @@ class Client:
         split_data = splitext(file_path.split('\\')[-1])
         filename = split_data[0]
         extension = split_data[1]
-        print(f"Uploading file: {filename}{extension}")
         metadata = hello_pb2.MetaData(filename=filename, extension=extension)
         yield hello_pb2.UploadFileRequest(metadata=metadata)
         
@@ -83,7 +82,6 @@ class Client:
         if not self.isLogin:
             return "Please login first."
         ret = self.client.UploadFile(self.read_to_iter(file_path, chunk_size))
-        print("Client Receive: " + ret.message)
         return ret.message
 
     def list_files(self) -> list[str] | str:

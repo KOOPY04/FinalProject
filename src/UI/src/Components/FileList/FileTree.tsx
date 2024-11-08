@@ -92,7 +92,6 @@ const FileTree: React.FC<FileTreeProps> = ({
     let desiredPath;
     if (match) {
       desiredPath = match[1];
-      console.log(desiredPath);
     }
     const remotePath = isLocal ? '' : `${desiredPath}`;
     setSendStatus((prev) => [

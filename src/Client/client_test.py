@@ -132,14 +132,24 @@ class Api:
                 return json.dumps({"error": "Invalid path or path not under allowed directories"})
         try:
             children = []
-            for entry in os.listdir(full_path):
-                entry_path = os.path.join(full_path, entry)
-                is_leaf = not os.path.isdir(entry_path)
+            if os.path.isdir(full_path):
+                for entry in os.listdir(full_path):
+                    entry_path = os.path.join(full_path, entry)
+                    is_leaf = not os.path.isdir(entry_path) 
+                    children.append({
+                        "title": entry,
+                        "key": entry_path,
+                        "isLeaf": is_leaf
+                    })
+            elif os.path.isfile(full_path):
                 children.append({
-                    "title": entry,
-                    "key": entry_path,
-                    "isLeaf": is_leaf
+                    "title": os.path.basename(full_path),
+                    "key": full_path,
+                    "isLeaf": True
                 })
+            else:
+                return json.dumps({"error": f"Path {full_path} is not a valid file or directory"})
+            
             return json.dumps(children)
         except Exception as e:
             return json.dumps({"error": str(e)})
@@ -163,14 +173,24 @@ class Api:
 
         try:
             children = []
-            for entry in os.listdir(full_path):
-                entry_path = os.path.join(full_path, entry)
-                is_leaf = not os.path.isdir(entry_path)
+            if os.path.isdir(full_path):
+                for entry in os.listdir(full_path):
+                    entry_path = os.path.join(full_path, entry)
+                    is_leaf = not os.path.isdir(entry_path)
+                    children.append({
+                        "title": entry,
+                        "key": entry_path,
+                        "isLeaf": is_leaf
+                    })
+            elif os.path.isfile(full_path):
                 children.append({
-                    "title": entry,
-                    "key": entry_path,
-                    "isLeaf": is_leaf
+                    "title": os.path.basename(full_path),
+                    "key": full_path,
+                    "isLeaf": True
                 })
+            else:
+                return json.dumps({"error": f"Path {full_path} is not a valid file or directory"})
+            
             return json.dumps(children)
         except Exception as e:
             return json.dumps({"error": str(e)})
