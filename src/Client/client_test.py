@@ -121,11 +121,8 @@ class Api:
     def get_remote_folders(self) -> str:
         if not self.isLogin:
             return json.dumps({"error": "尚未登入"})
-        
-        # 假設 'list_files' 方法會返回遠端伺服器上的檔案或資料夾列表
         try:
             response = self.client.list_remote_folders()  # 從伺服器獲取檔案/資料夾列表
-            # print(response)
             folders = list(response)
             if not response:  # 如果沒有檔案或資料夾
                 return json.dumps({"error": "沒有找到遠端資料夾"})
@@ -133,7 +130,6 @@ class Api:
             if "error" in response:
                 return json.dumps({"error": "無法取得遠端資料夾: " + response["error"]})
             
-            # 如果有返回資料，回傳遠端資料夾列表
             return json.dumps({"folders": folders})
         except Exception as e:
             print(e)
@@ -142,7 +138,6 @@ class Api:
     def upload_file_to_remote(self, file_path: str, remote_folder: str) -> str:
         if not self.isLogin:
             return json.dumps({"error": "Please log in first"})
-        # print("Uploading file to remote folder:", file_path, remote_folder)
         response = self.client.upload_file(file_path, destination_folder=remote_folder)
         
         if "Upload successful" in response:

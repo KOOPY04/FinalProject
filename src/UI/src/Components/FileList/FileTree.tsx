@@ -119,12 +119,10 @@ const FileTree: React.FC<FileTreeProps> = ({
     ]);
 
     try {
-      // console.log(action, filePath, remoteFolderPath);
       if (action === '上傳檔案') {
         await window.pywebview.api.upload_file_to_remote(filePath, remoteFolderPath || '');
       } else if (action === '下載檔案') {
         await window.pywebview.api.download_file(filePath);
-        // console.log(window.pywebview.api.download_file(filePath));
       }
 
       const checkFileSize = await window.pywebview.api.get_file_size(filePath);
@@ -221,7 +219,6 @@ const FileTree: React.FC<FileTreeProps> = ({
         return [];
       }
       console.log('data', data.folders);
-      // 確認返回結構包含 "folders" 並將其返回
       return data.folders || [];
     } catch (error) {
       console.error('Failed to fetch remote folders:', error);
@@ -231,7 +228,6 @@ const FileTree: React.FC<FileTreeProps> = ({
 
   const handleUploadToRemoteFolder = async () => {
     const folders = await fetchRemoteFolders();
-    // 顯示資料夾選單，例如使用 Modal 或 Dropdown
     setRemoteFolders(folders);
     setFolderModalVisible(true);
   };
@@ -354,13 +350,13 @@ const FileTree: React.FC<FileTreeProps> = ({
     }
     return null;
   };
-  
+
   const handleFolderSelection = async () => {
     if (selectedFolder && rightClickNodeKey) {
       const node = findNodeByKey(treeData, rightClickNodeKey); // 檢查右鍵選取的節點是否正確
       console.log('選擇的資料夾:', selectedFolder);
       console.log('選擇的檔案節點:', node);
-      
+
       if (node) {
         await handleFileAction('上傳檔案', node, selectedFolder); // 執行上傳動作
       } else {
@@ -369,8 +365,8 @@ const FileTree: React.FC<FileTreeProps> = ({
     } else {
       console.warn('未選取資料夾或檔案節點');
     }
-    
-    setFolderModalVisible(false); // 關閉選擇視窗
+
+    setFolderModalVisible(false);
   };
 
   return (

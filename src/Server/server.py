@@ -38,16 +38,15 @@ class Greeter(hello_pb2_grpc.GreeterServicer):
     
     def ListRemoteFolders(self, request, context):
         # 獲取所有資料夾名稱及路徑
-        files = ['remoteStorage']
+        folders = ['remoteStorage']
         for file in listdir(self.remote_dir):
             folder_path = join(self.remote_dir, file)
-            if exists(folder_path) and not file in files:
-                # 確保是資料夾而非檔案
+            if exists(folder_path) and not file in folders:
                 if isdir(folder_path):
-                    files.append(file)
+                    folders.append(file)
         
         # 返回資料夾名稱和路徑
-        return hello_pb2.FileList(files = files)
+        return hello_pb2.FileList(files = folders)
 
     def UploadFile(self, request_iterator, context):
         data: bytearray = bytearray()
@@ -57,20 +56,16 @@ class Greeter(hello_pb2_grpc.GreeterServicer):
             if request.metadata.filename and request.metadata.extension:
                 filepath = get_filepath(
                     request.metadata.filename, request.metadata.extension)
-                print("Uploading file:", filepath)
                 destination_folder = request.metadata.destination_folder
                 continue
             data.extend(request.chunk_data)
 
         # 根據選擇的目標資料夾決定儲存路徑
         if destination_folder == "remoteStorage":
-            # 如果選擇了 remoteStorage，則將檔案上傳至 remoteStorage 目錄下的相應資料夾
             target_dir = self.remote_dir
         else:
-            # 否則，將檔案上傳至 uploads 資料夾
             target_dir = join(self.remote_dir, destination_folder) if destination_folder else self.uploads_dir
 
-        # 確保資料夾存在，若不存在則創建
         makedirs(target_dir, exist_ok=True)
 
         with open(join(target_dir, filepath), 'wb') as file:
@@ -81,12 +76,12 @@ class Greeter(hello_pb2_grpc.GreeterServicer):
     def DownloadFile(self, request, context):
 
         filepath = get_filepath(request.filename, request.extension)
-        print("Download file:", filepath)
+        # print("Download file:", filepath)
         if exists(join(self.uploads_dir, filepath)):
             with open(join(self.uploads_dir, filepath), 'rb') as file:
                 while True:
                     chunk = file.read(self.chunk_size)
-                    print("Sending chunk:", chunk)
+                    # print("Sending chunk:", chunk)
                     if chunk:
                         yield hello_pb2.FileResponse(chunk_data=chunk)
                     else:

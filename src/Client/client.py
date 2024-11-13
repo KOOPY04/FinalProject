@@ -84,7 +84,6 @@ class Client:
         """
         if not self.isLogin:
             return "Please login first."
-        # 如果有指定遠端資料夾，將它傳遞給服務端
         file_name, extension = splitext(basename(file_path))
         if destination_folder:
             metadata = hello_pb2.MetaData(
@@ -92,15 +91,11 @@ class Client:
         else:
             metadata = hello_pb2.MetaData(
                 filename=file_name, extension=extension)
-
-        print("filename:", metadata.filename, "extension:", metadata.extension,
-              "destination_folder:", metadata.destination_folder)
-        print("Uploading file:", file_path)
         try:
             # 呼叫服務端的 UploadFile 方法
             ret = self.client.UploadFile(
                 self.read_to_iter(file_path, chunk_size, metadata))
-            return ret.message  # 返回服務端返回的消息
+            return ret.message
         except grpc.RpcError as e:
             return f"Failed to upload file: {e.details()}"
 
@@ -121,7 +116,6 @@ class Client:
         if not self.isLogin:
             return "Please login first."
         response = self.client.ListRemoteFolders(empty_pb2.Empty())
-        # print("Client Receive: " + str(response.files))
         return response.files
 
     def download_file(self, filename: str, extension: str) -> bool:
