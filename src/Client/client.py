@@ -3,7 +3,7 @@ from os.path import dirname, join, splitext, basename, exists
 from os import makedirs
 import grpc
 import sys
-from proto import hello_pb2_grpc, hello_pb2
+from proto import hello_pb2, hello_pb2_grpc
 from google.protobuf import empty_pb2
 
 
@@ -48,41 +48,61 @@ class Client:
         return f'{filename}{extension}'
 
     @staticmethod
-    def read_to_iter(file_path: str, chunk_size: int = 1024):
+    def read_to_iter(file_path: str, chunk_size: int = 1024, metadata: hello_pb2.MetaData = None):
         """
         讀取文件並生成上傳流。
         :parm file_path: 文件路徑
         :parm chunk_size: 塊大小
         """
-        split_data = splitext(file_path.split('\\')[-1])
-        filename = split_data[0]
-        extension = split_data[1]
-        metadata = hello_pb2.MetaData(filename=filename, extension=extension)
+        if metadata is None:
+            # split_data = splitext(file_path.split('\\')[-1])
+            # filename = split_data[0]
+            # extension = split_data[1]
+            metadata = hello_pb2.MetaData(
+                metadata.filename, metadata.extension)
         yield hello_pb2.UploadFileRequest(metadata=metadata)
-        
+
         with open(file_path, 'rb') as f:
             while True:
                 chunk = f.read(chunk_size)
                 if chunk:
-                    entry_request = hello_pb2.UploadFileRequest(chunk_data=chunk)
+                    entry_request = hello_pb2.UploadFileRequest(
+                        chunk_data=chunk)
                     yield entry_request
                 else:
                     break
 
-
-    def upload_file(self, file_path: str, chunk_size: int = 1024) -> str:
+    def upload_file(self, file_path: str, destination_folder: str = None, chunk_size: int = 1024) -> str:
         """
         上傳文件。
 
         :param file_path: 文件路徑
         :param chunk_size: 塊大小
+        :param destination_folder: 選擇的遠端目標資料夾
         :return: 上傳結果
         :rtype: hello_pb2.StringResponse
         """
         if not self.isLogin:
             return "Please login first."
-        ret = self.client.UploadFile(self.read_to_iter(file_path, chunk_size))
-        return ret.message
+        # 如果有指定遠端資料夾，將它傳遞給服務端
+        file_name, extension = splitext(basename(file_path))
+        if destination_folder:
+            metadata = hello_pb2.MetaData(
+                filename=file_name, extension=extension, destination_folder=destination_folder)
+        else:
+            metadata = hello_pb2.MetaData(
+                filename=file_name, extension=extension)
+
+        print("filename:", metadata.filename, "extension:", metadata.extension,
+              "destination_folder:", metadata.destination_folder)
+        print("Uploading file:", file_path)
+        try:
+            # 呼叫服務端的 UploadFile 方法
+            ret = self.client.UploadFile(
+                self.read_to_iter(file_path, chunk_size, metadata))
+            return ret.message  # 返回服務端返回的消息
+        except grpc.RpcError as e:
+            return f"Failed to upload file: {e.details()}"
 
     def list_files(self) -> list[str] | str:
         """
@@ -91,6 +111,17 @@ class Client:
         if not self.isLogin:
             return "Please login first."
         response = self.client.ListFiles(empty_pb2.Empty())
+        # print("Client Receive: " + str(response.files))
+        return response.files
+
+    def list_remote_folders(self) -> list[str] | str:
+        """
+        列出遠端文件夾。
+        """
+        if not self.isLogin:
+            return "Please login first."
+        response = self.client.ListRemoteFolders(empty_pb2.Empty())
+        # print("Client Receive: " + str(response.files))
         return response.files
 
     def download_file(self, filename: str, extension: str) -> bool:
@@ -102,8 +133,10 @@ class Client:
         """
         if not self.isLogin:
             return False
+        print("Client file:", filename, extension)
         response = self.client.DownloadFile(
-            hello_pb2.MetaData(filename=filename, extension=extension))
+            hello_pb2.MetaData(filename=filename, extension=extension, destination_folder="downloads"))
+        print(response)
         filename = self.get_filepath(filename, extension)
         try:
             for data in response:

@@ -2,6 +2,7 @@ from typing import NoReturn
 import webview
 import os
 import json
+from google.protobuf import empty_pb2
 
 
 class Api:
@@ -96,6 +97,8 @@ class Api:
         if not self.isLogin:
             return False
         response = self.client.upload_file(file_path)
+        print("Upload response:", response)  # 添加日誌檢查伺服器回應
+
         if not response:
             return json.dumps({"error": "Upload failed"})
         return json.dumps({"message": "Upload successful"})
@@ -104,13 +107,49 @@ class Api:
         if not self.isLogin:
             return False
         file_name, extension = os.path.splitext(os.path.basename(file_path))
+        print("Downloading file:", file_name, extension)
         response = self.client.download_file(file_name, extension)
+        print("Download response:", response)  # 添加日誌檢查伺服器回應
         if not response:
             return json.dumps({"error": "Download failed"})
         return json.dumps({"message": "Download successful"})
 
     def delete_file(self, file_path: str) -> str:
         pass
+
+    # 取得遠端可用的文件夾
+    def get_remote_folders(self) -> str:
+        if not self.isLogin:
+            return json.dumps({"error": "尚未登入"})
+        
+        # 假設 'list_files' 方法會返回遠端伺服器上的檔案或資料夾列表
+        try:
+            response = self.client.list_remote_folders()  # 從伺服器獲取檔案/資料夾列表
+            # print(response)
+            folders = list(response)
+            if not response:  # 如果沒有檔案或資料夾
+                return json.dumps({"error": "沒有找到遠端資料夾"})
+            
+            if "error" in response:
+                return json.dumps({"error": "無法取得遠端資料夾: " + response["error"]})
+            
+            # 如果有返回資料，回傳遠端資料夾列表
+            return json.dumps({"folders": folders})
+        except Exception as e:
+            print(e)
+            return json.dumps({"error": str(e)})
+        
+    def upload_file_to_remote(self, file_path: str, remote_folder: str) -> str:
+        if not self.isLogin:
+            return json.dumps({"error": "Please log in first"})
+        # print("Uploading file to remote folder:", file_path, remote_folder)
+        response = self.client.upload_file(file_path, destination_folder=remote_folder)
+        
+        if "Upload successful" in response:
+            return json.dumps({"message": "File uploaded successfully"})
+        else:
+            return json.dumps({"error": "Upload failed"})
+
 
     def close(self) -> str:
         if self.isLogin:
