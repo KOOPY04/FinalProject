@@ -10,8 +10,9 @@ class Api:
         from .client import Client
         self.client_obj = Client
         self.base_dir = base_dir
-        self.local_storage_dir = os.path.join(base_dir, "Data\\localStorage")
-        self.remote_storage_dir = os.path.join(base_dir, "Data\\remoteStorage")
+        self.data_dir: str = os.path.join(self.base_dir, "Data")
+        self.local_storage_dir = os.path.join(self.data_dir, "localStorage")
+        self.remote_storage_dir = os.path.join(self.data_dir, "remoteStorage")
         self.client_download_dir = os.path.join(
             self.local_storage_dir, "downloads")
         self.client_upload_dir = os.path.join(
@@ -144,6 +145,35 @@ class Api:
             return json.dumps({"message": "File uploaded successfully"})
         else:
             return json.dumps({"error": "Upload failed"})
+        
+    # 取得遠端可用的文件夾
+    def get_local_folders(self) -> str:
+        if not self.isLogin:
+            return json.dumps({"error": "Please log in first"})
+        try:
+            response = self.client.list_local_folders()  # 從伺服器獲取檔案/資料夾列表
+            folders = list(response)
+            if not response:  # 如果沒有檔案或資料夾
+                return json.dumps({"error": "沒有找到本地資料夾"})
+            
+            if "error" in response:
+                return json.dumps({"error": "無法取得本地資料夾: " + response["error"]})
+            
+            return json.dumps({"folders": folders})
+        except Exception as e:
+            print(e)
+            return json.dumps({"error": str(e)})
+        
+    def download_file_to_local(self, file_path: str, local_folder: str) -> str:
+        if not self.isLogin:
+            return json.dumps({"error": "Please log in first"})
+        print("Downloading file:", file_path)
+        file_name, extension = os.path.splitext(os.path.basename(file_path))
+        response = self.client.download_file(file_name, extension, destination_folder=local_folder)
+        
+        if not response:
+            return json.dumps({"error": "Download failed"})
+        return json.dumps({"message": "Download successful"})
 
 
     def close(self) -> str:

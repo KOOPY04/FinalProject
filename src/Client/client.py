@@ -54,12 +54,12 @@ class Client:
         :parm file_path: 文件路徑
         :parm chunk_size: 塊大小
         """
-        if metadata is None:
-            # split_data = splitext(file_path.split('\\')[-1])
-            # filename = split_data[0]
-            # extension = split_data[1]
-            metadata = hello_pb2.MetaData(
-                metadata.filename, metadata.extension)
+        # if metadata is None:
+        #     # split_data = splitext(file_path.split('\\')[-1])
+        #     # filename = split_data[0]
+        #     # extension = split_data[1]
+        #     metadata = hello_pb2.MetaData(
+        #         metadata.filename, metadata.extension)
         yield hello_pb2.UploadFileRequest(metadata=metadata)
 
         with open(file_path, 'rb') as f:
@@ -117,24 +117,34 @@ class Client:
             return "Please login first."
         response = self.client.ListRemoteFolders(empty_pb2.Empty())
         return response.files
+    
+    def list_local_folders(self) -> list[str] | str:
+        """
+        列出本地文件夾。
+        """
+        if not self.isLogin:
+            return "Please login first."
+        response = self.client.ListLocalFolders(empty_pb2.Empty())
+        return response.files
 
-    def download_file(self, filename: str, extension: str) -> bool:
+    def download_file(self, filename: str, extension: str, destination_folder: str = None) -> bool:
         """
         下載文件。
         :param filename: 文件名
         :param extension: 文件擴展名
         :param chunk_size: 塊大小
+        :param destination_folder: 目標資料夾（選填）
         """
         if not self.isLogin:
             return False
         print("Client file:", filename, extension)
         response = self.client.DownloadFile(
-            hello_pb2.MetaData(filename=filename, extension=extension, destination_folder="downloads"))
+            hello_pb2.MetaData(filename=filename, extension=extension, destination_folder=destination_folder))
         print(response)
-        filename = self.get_filepath(filename, extension)
         try:
+            filename = self.get_filepath(filename, extension)
             for data in response:
-                with open(join(self.downloads_dir, filename), mode="ab") as f:
+                with open(join(self.downloads_dir, destination_folder, filename), mode="ab") as f:
                     f.write(data.chunk_data)
             return True
         except Exception as e:

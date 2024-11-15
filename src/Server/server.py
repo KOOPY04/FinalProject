@@ -16,6 +16,7 @@ class Greeter(hello_pb2_grpc.GreeterServicer):
         self.src_dir: str = dirname(dirname(__file__))
         self.data_dir: str = join(self.src_dir, "Data")
         self.remote_dir: str = join(self.data_dir, "remoteStorage")
+        self.local_dir: str = join(self.data_dir, "localStorage")
         self.uploads_dir: str = join(self.remote_dir, "uploads")
         self.chunk_size: int = 1024
 
@@ -41,6 +42,18 @@ class Greeter(hello_pb2_grpc.GreeterServicer):
         folders = ['remoteStorage']
         for file in listdir(self.remote_dir):
             folder_path = join(self.remote_dir, file)
+            if exists(folder_path) and not file in folders:
+                if isdir(folder_path):
+                    folders.append(file)
+        
+        # 返回資料夾名稱和路徑
+        return hello_pb2.FileList(files = folders)
+    
+    def ListLocalFolders(self, request, context):
+        # 獲取所有資料夾名稱及路徑
+        folders = ['localStorage']
+        for file in listdir(self.local_dir):
+            folder_path = join(self.local_dir, file)
             if exists(folder_path) and not file in folders:
                 if isdir(folder_path):
                     folders.append(file)

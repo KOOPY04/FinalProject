@@ -4,6 +4,8 @@ import type { TreeDataNode } from 'antd';
 import { Menu, Item, contextMenu } from 'react-contexify';
 import 'react-contexify/dist/ReactContexify.css';
 import { useGlobalState } from '@site/GlobalStateContext';
+// import Remote from '../SingleDir/Remote';
+// import Local from '../SingleDir/Local';
 
 const { DirectoryTree } = Tree;
 const { Option } = Select;
@@ -74,7 +76,9 @@ const FileTree: React.FC<FileTreeProps> = ({
   const [rightClickNodeKey, setRightClickNodeKey] = useState<React.Key | null>(null);
 
   const [remoteFolders, setRemoteFolders] = useState<string[]>([]);
-  const [folderModalVisible, setFolderModalVisible] = useState(false);
+  const [localFolders, setLocalFolders] = useState<string[]>([]);
+  const [RemoteFolderModalVisible, setRemoteFolderModalVisible] = useState(false);
+  const [LocalFolderModalVisible, setLocalFolderModalVisible] = useState(false);
   const [selectedFolder, setSelectedFolder] = useState<string>('');
 
   const { setSendStatus } = useGlobalState();
@@ -87,6 +91,7 @@ const FileTree: React.FC<FileTreeProps> = ({
     action: string,
     node: TreeDataNode,
     remoteFolderPath?: string,
+    localFolderPath?: string,
   ) => {
     const filePath = node.key;
     const fileSize = await window.pywebview.api.get_file_size(filePath);
@@ -118,11 +123,13 @@ const FileTree: React.FC<FileTreeProps> = ({
       },
     ]);
 
+    console.log('action:', action);
+
     try {
       if (action === '上傳檔案') {
         await window.pywebview.api.upload_file_to_remote(filePath, remoteFolderPath || '');
       } else if (action === '下載檔案') {
-        await window.pywebview.api.download_file(filePath);
+        await window.pywebview.api.download_file_to_local(filePath, localFolderPath || '');
       }
 
       const checkFileSize = await window.pywebview.api.get_file_size(filePath);
@@ -174,11 +181,12 @@ const FileTree: React.FC<FileTreeProps> = ({
         刪除檔案
       </Item>
       <Item
-        onClick={(e) => {
-          if (!isLocal) {
-            handleFileAction('下載檔案', e.props.node, '');
-          } else {
+        onClick={() => {
+          console.log(isLocal ? '上傳' : '下載');
+          if (isLocal) {
             handleUploadToRemoteFolder();
+          } else {
+            handleDownloadToLocalFolder();
           }
         }}
         disabled={disableMenu}
@@ -229,7 +237,30 @@ const FileTree: React.FC<FileTreeProps> = ({
   const handleUploadToRemoteFolder = async () => {
     const folders = await fetchRemoteFolders();
     setRemoteFolders(folders);
-    setFolderModalVisible(true);
+    setRemoteFolderModalVisible(true);
+  };
+
+  const fetchLocalFolders = async (): Promise<string[]> => {
+    try {
+      const response = await window.pywebview.api.get_local_folders();
+      const data = response ? JSON.parse(response) : {};
+
+      if (data.error) {
+        console.error('Error:', data.error);
+        return [];
+      }
+      console.log('data', data.folders);
+      return data.folders || [];
+    } catch (error) {
+      console.error('Failed to fetch local folders:', error);
+      return [];
+    }
+  };
+
+  const handleDownloadToLocalFolder = async () => {
+    const folders = await fetchLocalFolders();
+    setLocalFolders(folders);
+    setLocalFolderModalVisible(true);
   };
 
   const fetchLocalChildren = async (key: React.Key): Promise<TreeDataNode[]> => {
@@ -358,7 +389,10 @@ const FileTree: React.FC<FileTreeProps> = ({
       console.log('選擇的檔案節點:', node);
 
       if (node) {
-        await handleFileAction('上傳檔案', node, selectedFolder); // 執行上傳動作
+        if (isLocal) {
+          await handleFileAction('上傳檔案', node, selectedFolder); // 執行下載動作
+        } else
+        await handleFileAction('下載檔案', node, selectedFolder); // 執行上傳動作
       } else {
         console.warn('無法找到對應的檔案節點');
       }
@@ -366,7 +400,12 @@ const FileTree: React.FC<FileTreeProps> = ({
       console.warn('未選取資料夾或檔案節點');
     }
 
-    setFolderModalVisible(false);
+    if (isLocal) {
+      setLocalFolderModalVisible(false);
+    }else{
+      setRemoteFolderModalVisible(false);
+    }
+
   };
 
   return (
@@ -381,12 +420,26 @@ const FileTree: React.FC<FileTreeProps> = ({
       />
       <Modal
         title='選擇遠端上傳資料夾'
-        visible={folderModalVisible}
+        visible={RemoteFolderModalVisible}
         onOk={handleFolderSelection}
-        onCancel={() => setFolderModalVisible(false)}
+        onCancel={() => setRemoteFolderModalVisible(false)}
       >
         <Select onChange={(value) => setSelectedFolder(value)} style={{ width: '100%' }}>
           {remoteFolders.map((folder) => (
+            <Option key={folder} value={folder}>
+              {folder}
+            </Option>
+          ))}
+        </Select>
+      </Modal>
+      <Modal
+        title='選擇本地上傳資料夾'
+        visible={LocalFolderModalVisible}
+        onOk={handleFolderSelection}
+        onCancel={() => setLocalFolderModalVisible(false)}
+      >
+        <Select onChange={(value) => setSelectedFolder(value)} style={{ width: '100%' }}>
+          {localFolders.map((folder) => (
             <Option key={folder} value={folder}>
               {folder}
             </Option>
