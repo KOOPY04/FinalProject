@@ -16,7 +16,6 @@ class Greeter(hello_pb2_grpc.GreeterServicer):
         self.src_dir: str = dirname(dirname(__file__))
         self.data_dir: str = join(self.src_dir, "Data")
         self.remote_dir: str = join(self.data_dir, "remoteStorage")
-        self.local_dir: str = join(self.data_dir, "localStorage")
         self.uploads_dir: str = join(self.remote_dir, "uploads")
         self.chunk_size: int = 1024
 
@@ -46,19 +45,6 @@ class Greeter(hello_pb2_grpc.GreeterServicer):
                 if isdir(folder_path):
                     folders.append(file)
         
-        # 返回資料夾名稱和路徑
-        return hello_pb2.FileList(files = folders)
-    
-    def ListLocalFolders(self, request, context):
-        # 獲取所有資料夾名稱及路徑
-        folders = ['localStorage']
-        for file in listdir(self.local_dir):
-            folder_path = join(self.local_dir, file)
-            if exists(folder_path) and not file in folders:
-                if isdir(folder_path):
-                    folders.append(file)
-        
-        # 返回資料夾名稱和路徑
         return hello_pb2.FileList(files = folders)
 
     def UploadFile(self, request_iterator, context):
@@ -73,11 +59,10 @@ class Greeter(hello_pb2_grpc.GreeterServicer):
                 continue
             data.extend(request.chunk_data)
 
-        # 根據選擇的目標資料夾決定儲存路徑
         if destination_folder == "remoteStorage":
             target_dir = self.remote_dir
         else:
-            target_dir = join(self.remote_dir, destination_folder) if destination_folder else self.uploads_dir
+            target_dir = join(self.remote_dir, destination_folder)
 
         makedirs(target_dir, exist_ok=True)
 
@@ -89,20 +74,17 @@ class Greeter(hello_pb2_grpc.GreeterServicer):
     def DownloadFile(self, request, context):
 
         filepath = get_filepath(request.filename, request.extension)
-        # print("Download file:", filepath)
-        if exists(join(self.uploads_dir, filepath)):
-            with open(join(self.uploads_dir, filepath), 'rb') as file:
+        if exists(join(self.remote_dir, filepath)):
+            with open(join(self.remote_dir, filepath), 'rb') as file:
                 while True:
                     chunk = file.read(self.chunk_size)
-                    # print("Sending chunk:", chunk)
                     if chunk:
                         yield hello_pb2.FileResponse(chunk_data=chunk)
                     else:
                         return
 
     def ListFiles(self, request, context):
-        files = listdir(self.remote_dir) # 列出遠端伺服器上的檔案
-        # print("server files:", files)
+        files = listdir(self.remote_dir)
         return hello_pb2.FileList(files=files)
 
     def DeleteFile(self, request, context):

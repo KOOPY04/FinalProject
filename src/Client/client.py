@@ -1,6 +1,6 @@
 
-from os.path import dirname, join, splitext, basename, exists
-from os import makedirs
+from os.path import dirname, join, splitext, basename, exists, isdir
+from os import listdir, makedirs
 import grpc
 import sys
 from proto import hello_pb2, hello_pb2_grpc
@@ -18,10 +18,10 @@ class Client:
         self.isLogin = False
         self.src_dir: str = dirname(dirname(__file__))
         self.data_dir: str = join(self.src_dir, "Data")
-        self.remote_dir: str = join(self.data_dir, "remoteStorage")
+        # self.remote_dir: str = join(self.data_dir, "remoteStorage")
         self.local_dir: str = join(self.data_dir, "localStorage")
         self.downloads_dir: str = join(self.local_dir, "downloads")
-        self.uploads_dir: str = join(self.remote_dir, "uploads")
+        # self.uploads_dir: str = join(self.remote_dir, "uploads")
 
         makedirs(self.downloads_dir, exist_ok=True)
 
@@ -48,20 +48,20 @@ class Client:
         return f'{filename}{extension}'
 
     @staticmethod
-    def read_to_iter(file_path: str, chunk_size: int = 1024, metadata: hello_pb2.MetaData = None):
+    def read_to_iter(file_path: str, chunk_size: int = 1024, destination_folder: str = None):
         """
         讀取文件並生成上傳流。
         :parm file_path: 文件路徑
         :parm chunk_size: 塊大小
         """
-        # if metadata is None:
-        #     # split_data = splitext(file_path.split('\\')[-1])
-        #     # filename = split_data[0]
-        #     # extension = split_data[1]
-        #     metadata = hello_pb2.MetaData(
-        #         metadata.filename, metadata.extension)
+        file_name, extension = splitext(basename(file_path))
+        if destination_folder:
+            metadata = hello_pb2.MetaData(
+                filename=file_name, extension=extension, destination_folder=destination_folder)
+        else:
+            metadata = hello_pb2.MetaData(
+                filename=file_name, extension=extension)
         yield hello_pb2.UploadFileRequest(metadata=metadata)
-
         with open(file_path, 'rb') as f:
             while True:
                 chunk = f.read(chunk_size)
@@ -72,7 +72,7 @@ class Client:
                 else:
                     break
 
-    def upload_file(self, file_path: str, destination_folder: str = None, chunk_size: int = 1024) -> str:
+    def upload_file(self, file_path: str, destination_folder: str, chunk_size: int = 1024) -> str:
         """
         上傳文件。
 
@@ -84,17 +84,8 @@ class Client:
         """
         if not self.isLogin:
             return "Please login first."
-        file_name, extension = splitext(basename(file_path))
-        if destination_folder:
-            metadata = hello_pb2.MetaData(
-                filename=file_name, extension=extension, destination_folder=destination_folder)
-        else:
-            metadata = hello_pb2.MetaData(
-                filename=file_name, extension=extension)
         try:
-            # 呼叫服務端的 UploadFile 方法
-            ret = self.client.UploadFile(
-                self.read_to_iter(file_path, chunk_size, metadata))
+            ret = self.client.UploadFile(self.read_to_iter(file_path, chunk_size, destination_folder))
             return ret.message
         except grpc.RpcError as e:
             return f"Failed to upload file: {e.details()}"
@@ -106,7 +97,6 @@ class Client:
         if not self.isLogin:
             return "Please login first."
         response = self.client.ListFiles(empty_pb2.Empty())
-        # print("Client Receive: " + str(response.files))
         return response.files
 
     def list_remote_folders(self) -> list[str] | str:
@@ -118,14 +108,17 @@ class Client:
         response = self.client.ListRemoteFolders(empty_pb2.Empty())
         return response.files
     
-    def list_local_folders(self) -> list[str] | str:
+    def list_local_folders(self) -> list[str]:
         """
         列出本地文件夾。
         """
-        if not self.isLogin:
-            return "Please login first."
-        response = self.client.ListLocalFolders(empty_pb2.Empty())
-        return response.files
+        folders = ["localStorage"]
+        for file in listdir(self.local_dir):
+            folder_path = join(self.local_dir, file)
+            if exists(folder_path) and isdir(folder_path):
+                folders.append(file)
+        return folders
+
 
     def download_file(self, filename: str, extension: str, destination_folder: str = None) -> bool:
         """
@@ -137,14 +130,16 @@ class Client:
         """
         if not self.isLogin:
             return False
-        print("Client file:", filename, extension)
         response = self.client.DownloadFile(
             hello_pb2.MetaData(filename=filename, extension=extension, destination_folder=destination_folder))
-        print(response)
         try:
             filename = self.get_filepath(filename, extension)
+            if destination_folder == "localStorage":
+                target_dir = self.local_dir
+            else:
+                target_dir = join(self.local_dir, destination_folder)
             for data in response:
-                with open(join(self.downloads_dir, destination_folder, filename), mode="ab") as f:
+                with open(join(target_dir, filename), mode="ab") as f:
                     f.write(data.chunk_data)
             return True
         except Exception as e:
@@ -160,7 +155,6 @@ class Client:
             return "Please login first."
         response = self.client.DeleteFile(
             hello_pb2.MetaData(filename=filename, extension=extension))
-        print("Client Receive: " + response.message)
         return response.message
 
     def login(self, username: str, password: str) -> bool:

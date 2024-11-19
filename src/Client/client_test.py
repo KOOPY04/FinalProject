@@ -108,7 +108,7 @@ class Api:
         if not self.isLogin:
             return False
         file_name, extension = os.path.splitext(os.path.basename(file_path))
-        print("Downloading file:", file_name, extension)
+        # print("Downloading file:", file_name, extension)
         response = self.client.download_file(file_name, extension)
         print("Download response:", response)  # 添加日誌檢查伺服器回應
         if not response:
@@ -139,6 +139,7 @@ class Api:
     def upload_file_to_remote(self, file_path: str, remote_folder: str) -> str:
         if not self.isLogin:
             return json.dumps({"error": "Please log in first"})
+        # print("Uploading file to:", remote_folder)
         response = self.client.upload_file(file_path, destination_folder=remote_folder)
         
         if "Upload successful" in response:
@@ -153,6 +154,7 @@ class Api:
         try:
             response = self.client.list_local_folders()  # 從伺服器獲取檔案/資料夾列表
             folders = list(response)
+            # print(folders)
             if not response:  # 如果沒有檔案或資料夾
                 return json.dumps({"error": "沒有找到本地資料夾"})
             
@@ -167,10 +169,10 @@ class Api:
     def download_file_to_local(self, file_path: str, local_folder: str) -> str:
         if not self.isLogin:
             return json.dumps({"error": "Please log in first"})
-        print("Downloading file:", file_path)
+        print("Downloading file:", file_path + " to " + local_folder)
         file_name, extension = os.path.splitext(os.path.basename(file_path))
+        print("Downloading file:", file_name, extension)
         response = self.client.download_file(file_name, extension, destination_folder=local_folder)
-        
         if not response:
             return json.dumps({"error": "Download failed"})
         return json.dumps({"message": "Download successful"})

@@ -4,8 +4,6 @@ import type { TreeDataNode } from 'antd';
 import { Menu, Item, contextMenu } from 'react-contexify';
 import 'react-contexify/dist/ReactContexify.css';
 import { useGlobalState } from '@site/GlobalStateContext';
-// import Remote from '../SingleDir/Remote';
-// import Local from '../SingleDir/Local';
 
 const { DirectoryTree } = Tree;
 const { Option } = Select;
@@ -123,8 +121,6 @@ const FileTree: React.FC<FileTreeProps> = ({
       },
     ]);
 
-    console.log('action:', action);
-
     try {
       if (action === '上傳檔案') {
         await window.pywebview.api.upload_file_to_remote(filePath, remoteFolderPath || '');
@@ -146,6 +142,8 @@ const FileTree: React.FC<FileTreeProps> = ({
             : item,
         ),
       );
+
+
     } catch (error) {
       console.error('File action failed:', error);
 
@@ -153,15 +151,10 @@ const FileTree: React.FC<FileTreeProps> = ({
         prev.map((item) =>
           item.fileName === String(node.title) && item.direction === direction
             ? { ...item, status: '失敗' }
-            : item,
-        ),
+            : item
+        )
       );
     }
-
-    const updatedChildren = isLocal
-      ? await fetchLocalChildren(node.key)
-      : await fetchRemoteChildren(node.key);
-    setTreeData((origin) => updateTreeData(origin, node.key, updatedChildren));
   };
 
   const FileMenu = ({
@@ -390,9 +383,9 @@ const FileTree: React.FC<FileTreeProps> = ({
 
       if (node) {
         if (isLocal) {
-          await handleFileAction('上傳檔案', node, selectedFolder); // 執行下載動作
+          await handleFileAction('上傳檔案', node, selectedFolder, undefined); // 執行下載動作
         } else
-        await handleFileAction('下載檔案', node, selectedFolder); // 執行上傳動作
+        await handleFileAction('下載檔案', node, undefined, selectedFolder); // 執行上傳動作
       } else {
         console.warn('無法找到對應的檔案節點');
       }
@@ -419,27 +412,21 @@ const FileTree: React.FC<FileTreeProps> = ({
         onExpand={(expandedKeys) => setExpandedKeys(expandedKeys)}
       />
       <Modal
-        title='選擇遠端上傳資料夾'
-        visible={RemoteFolderModalVisible}
+        title="選擇目標資料夾"
+        visible={isLocal ? RemoteFolderModalVisible : LocalFolderModalVisible}
         onOk={handleFolderSelection}
-        onCancel={() => setRemoteFolderModalVisible(false)}
+        onCancel={() => {
+          setRemoteFolderModalVisible(false);
+          setLocalFolderModalVisible(false);
+        }}
       >
-        <Select onChange={(value) => setSelectedFolder(value)} style={{ width: '100%' }}>
-          {remoteFolders.map((folder) => (
-            <Option key={folder} value={folder}>
-              {folder}
-            </Option>
-          ))}
-        </Select>
-      </Modal>
-      <Modal
-        title='選擇本地上傳資料夾'
-        visible={LocalFolderModalVisible}
-        onOk={handleFolderSelection}
-        onCancel={() => setLocalFolderModalVisible(false)}
-      >
-        <Select onChange={(value) => setSelectedFolder(value)} style={{ width: '100%' }}>
-          {localFolders.map((folder) => (
+        <Select
+          style={{ width: '100%' }}
+          placeholder="選擇資料夾"
+          onChange={(value) => setSelectedFolder(value)}
+          value={selectedFolder}
+        >
+          {(isLocal ? remoteFolders : localFolders).map((folder) => (
             <Option key={folder} value={folder}>
               {folder}
             </Option>
