@@ -1,8 +1,16 @@
+import { useEffect, useRef } from 'react';
 import { useGlobalState } from '@site/GlobalStateContext';
 
 const SendStatus = () => {
   const { sendStatus } = useGlobalState();
+  const lastItemRef = useRef<HTMLDivElement | null>(null);
   console.log(sendStatus);
+  useEffect(() => {
+    // 當 sendStatus 更新時，滾動到最後一個元素
+    if (lastItemRef.current) {
+      lastItemRef.current.scrollIntoView({ behavior: 'smooth' });
+    }
+  }, [sendStatus]);
   return (
     <div className='box-border w-full h-full p-2 pb-4 bg-gray-500 border rounded'>
       {/* 標題欄 */}
@@ -19,6 +27,7 @@ const SendStatus = () => {
         {sendStatus.map((status, index) => (
           <div
             key={index}
+            ref={index === sendStatus.length - 1 ? lastItemRef : null}
             className={`grid grid-cols-5 gap-1 p-2 ${index % 2 === 0 ? 'bg-gray-400' : 'bg-gray-300'} border rounded box-border`}
           >
             <div className='col-span-1 truncate'>{status.fileName}</div>

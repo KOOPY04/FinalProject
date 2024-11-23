@@ -85,6 +85,7 @@ const FileTree: React.FC<FileTreeProps> = ({
     setExpandedKeys(isLocal ? ['localStorage'] : ['remoteStorage']);
   }, [isLocal]);
 
+  
   const handleFileAction = async (
     action: string,
     node: TreeDataNode,
@@ -127,7 +128,6 @@ const FileTree: React.FC<FileTreeProps> = ({
       } else if (action === '下載檔案') {
         await window.pywebview.api.download_file_to_local(filePath, localFolderPath || '');
       }
-
       const checkFileSize = await window.pywebview.api.get_file_size(filePath);
       const checkSize = JSON.parse(checkFileSize);
 
@@ -142,7 +142,6 @@ const FileTree: React.FC<FileTreeProps> = ({
             : item,
         ),
       );
-
 
     } catch (error) {
       console.error('File action failed:', error);
@@ -213,7 +212,7 @@ const FileTree: React.FC<FileTreeProps> = ({
   const fetchRemoteFolders = async (): Promise<string[]> => {
     try {
       const response = await window.pywebview.api.get_remote_folders();
-      const data = response ? JSON.parse(response) : {};
+      const data = response ? JSON.parse(response) : [];
 
       if (data.error) {
         console.error('Error:', data.error);
@@ -236,7 +235,7 @@ const FileTree: React.FC<FileTreeProps> = ({
   const fetchLocalFolders = async (): Promise<string[]> => {
     try {
       const response = await window.pywebview.api.get_local_folders();
-      const data = response ? JSON.parse(response) : {};
+      const data = response ? JSON.parse(response) : [];
 
       if (data.error) {
         console.error('Error:', data.error);
@@ -352,14 +351,6 @@ const FileTree: React.FC<FileTreeProps> = ({
     }
   };
 
-  const onSelect = (selectedKeys: React.Key[], info: any) => {
-    if (onNodeSelect && selectedKeys.length > 0) {
-      const selectedNodeKey = selectedKeys[0];
-      const selectedNode = info.node;
-      onNodeSelect(selectedNodeKey, selectedNode);
-    }
-  };
-
   const handleOpenFolder = (key: React.Key) => {
     setExpandedKeys((prevExpandedKeys) => [...prevExpandedKeys, key]);
   };
@@ -385,7 +376,7 @@ const FileTree: React.FC<FileTreeProps> = ({
         if (isLocal) {
           await handleFileAction('上傳檔案', node, selectedFolder, undefined); // 執行下載動作
         } else
-        await handleFileAction('下載檔案', node, undefined, selectedFolder); // 執行上傳動作
+        await handleFileAction('下載檔案', node, '', selectedFolder); // 執行上傳動作
       } else {
         console.warn('無法找到對應的檔案節點');
       }
@@ -406,7 +397,7 @@ const FileTree: React.FC<FileTreeProps> = ({
       <DirectoryTree
         loadData={onLoadData}
         treeData={treeData}
-        onSelect={onSelect}
+        onSelect={(selectedKeys, { node }) => onNodeSelect && onNodeSelect(selectedKeys[0], node)}
         expandedKeys={expandedKeys}
         onRightClick={({ event, node }) => handleContextMenu(event, node)}
         onExpand={(expandedKeys) => setExpandedKeys(expandedKeys)}
@@ -414,7 +405,13 @@ const FileTree: React.FC<FileTreeProps> = ({
       <Modal
         title="選擇目標資料夾"
         visible={isLocal ? RemoteFolderModalVisible : LocalFolderModalVisible}
-        onOk={handleFolderSelection}
+        onOk={() => {
+          if (selectedFolder) {
+            handleFolderSelection();
+          }
+          setRemoteFolderModalVisible(false);
+          setLocalFolderModalVisible(false);
+        }}
         onCancel={() => {
           setRemoteFolderModalVisible(false);
           setLocalFolderModalVisible(false);
