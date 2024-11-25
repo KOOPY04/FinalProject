@@ -85,7 +85,6 @@ const FileTree: React.FC<FileTreeProps> = ({
     setExpandedKeys(isLocal ? ['localStorage'] : ['remoteStorage']);
   }, [isLocal]);
 
-  
   const handleFileAction = async (
     action: string,
     node: TreeDataNode,
@@ -105,10 +104,10 @@ const FileTree: React.FC<FileTreeProps> = ({
     const direction = action === '上傳檔案' ? '上傳' : '下載';
     console.log(node.key);
     const file_path = node.key as string;
-    const match = file_path.match(/(\\remoteStorage\\.+)/);
+    const match = file_path.match(/[/\\]remoteStorage[/\\].+/);
     let desiredPath;
     if (match) {
-      desiredPath = match[1];
+      desiredPath = match[0];
     }
     const remotePath = isLocal ? '' : `${desiredPath}`;
     setSendStatus((prev) => [
@@ -142,7 +141,6 @@ const FileTree: React.FC<FileTreeProps> = ({
             : item,
         ),
       );
-
     } catch (error) {
       console.error('File action failed:', error);
 
@@ -150,8 +148,8 @@ const FileTree: React.FC<FileTreeProps> = ({
         prev.map((item) =>
           item.fileName === String(node.title) && item.direction === direction
             ? { ...item, status: '失敗' }
-            : item
-        )
+            : item,
+        ),
       );
     }
   };
@@ -375,8 +373,7 @@ const FileTree: React.FC<FileTreeProps> = ({
       if (node) {
         if (isLocal) {
           await handleFileAction('上傳檔案', node, selectedFolder, undefined); // 執行下載動作
-        } else
-        await handleFileAction('下載檔案', node, '', selectedFolder); // 執行上傳動作
+        } else await handleFileAction('下載檔案', node, '', selectedFolder); // 執行上傳動作
       } else {
         console.warn('無法找到對應的檔案節點');
       }
@@ -386,10 +383,9 @@ const FileTree: React.FC<FileTreeProps> = ({
 
     if (isLocal) {
       setLocalFolderModalVisible(false);
-    }else{
+    } else {
       setRemoteFolderModalVisible(false);
     }
-
   };
 
   return (
@@ -403,7 +399,7 @@ const FileTree: React.FC<FileTreeProps> = ({
         onExpand={(expandedKeys) => setExpandedKeys(expandedKeys)}
       />
       <Modal
-        title="選擇目標資料夾"
+        title='選擇目標資料夾'
         visible={isLocal ? RemoteFolderModalVisible : LocalFolderModalVisible}
         onOk={() => {
           if (selectedFolder) {
@@ -419,7 +415,7 @@ const FileTree: React.FC<FileTreeProps> = ({
       >
         <Select
           style={{ width: '100%' }}
-          placeholder="選擇資料夾"
+          placeholder='選擇資料夾'
           onChange={(value) => setSelectedFolder(value)}
           value={selectedFolder}
         >
