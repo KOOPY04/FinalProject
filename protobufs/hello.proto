@@ -6,6 +6,7 @@ service Greeter {
   rpc ListFiles(google.protobuf.Empty) returns (FileList) {}
   rpc DeleteFile(MetaData) returns (StringResponse) {}
   rpc Login(LoginRequest) returns (StringResponse) {}
+  rpc ListRemoteFolders(google.protobuf.Empty) returns (FileList) {}
 }
 
 message StringResponse {
@@ -18,6 +19,7 @@ message FileResponse{
 message MetaData {
     string filename = 1;
     string extension = 2;
+    string destination_folder = 3;
 }
 message UploadFileRequest {
     oneof request{
