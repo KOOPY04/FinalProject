@@ -2,8 +2,6 @@ from typing import NoReturn
 import webview
 import os
 import json
-from google.protobuf import empty_pb2
-
 
 class Api:
     def __init__(self, args: list[str], base_dir=os.path.dirname(os.path.dirname(os.path.abspath(__file__)))):
