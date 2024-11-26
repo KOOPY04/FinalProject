@@ -14,6 +14,7 @@ interface FileTreeProps {
   onNodeSelect?: (key: React.Key, node: TreeDataNode) => void;
 }
 
+// 決定要使用的右鍵選單 ID
 const getMenuIds = (isLocal: boolean) => ({
   fileMenuId: `file_menu_${isLocal ? 'local' : 'remote'}`,
   folderMenuId: `folder_menu_${isLocal ? 'local' : 'remote'}`,
@@ -57,6 +58,7 @@ const FolderMenu = ({
   </Menu>
 );
 
+// 檔案樹組件
 const FileTree: React.FC<FileTreeProps> = ({
   initialTreeData = [
     {
@@ -367,25 +369,14 @@ const FileTree: React.FC<FileTreeProps> = ({
   const handleFolderSelection = async () => {
     if (selectedFolder && rightClickNodeKey) {
       const node = findNodeByKey(treeData, rightClickNodeKey); // 檢查右鍵選取的節點是否正確
-      console.log('選擇的資料夾:', selectedFolder);
-      console.log('選擇的檔案節點:', node);
 
       if (node) {
         if (isLocal) {
           await handleFileAction('上傳檔案', node, selectedFolder, undefined); // 執行下載動作
         } else await handleFileAction('下載檔案', node, '', selectedFolder); // 執行上傳動作
-      } else {
-        console.warn('無法找到對應的檔案節點');
       }
-    } else {
-      console.warn('未選取資料夾或檔案節點');
     }
-
-    if (isLocal) {
-      setLocalFolderModalVisible(false);
-    } else {
-      setRemoteFolderModalVisible(false);
-    }
+    isLocal ? setLocalFolderModalVisible(false) : setRemoteFolderModalVisible(false);
   };
 
   return (
@@ -400,7 +391,7 @@ const FileTree: React.FC<FileTreeProps> = ({
       />
       <Modal
         title='選擇目標資料夾'
-        visible={isLocal ? RemoteFolderModalVisible : LocalFolderModalVisible}
+        open={isLocal ? RemoteFolderModalVisible : LocalFolderModalVisible}
         onOk={() => {
           if (selectedFolder) {
             handleFolderSelection();
@@ -412,6 +403,7 @@ const FileTree: React.FC<FileTreeProps> = ({
           setRemoteFolderModalVisible(false);
           setLocalFolderModalVisible(false);
         }}
+        destroyOnClose={true}
       >
         <Select
           style={{ width: '100%' }}
