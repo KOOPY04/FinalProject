@@ -81,7 +81,7 @@ const FileTree: React.FC<FileTreeProps> = ({
   const [LocalFolderModalVisible, setLocalFolderModalVisible] = useState(false);
   const [selectedFolder, setSelectedFolder] = useState<string>('');
 
-  const { setSendStatus } = useGlobalState();
+  const { setSendStatus, setFileTreeKey } = useGlobalState();
   const menuIds = getMenuIds(isLocal);
   useEffect(() => {
     setExpandedKeys(isLocal ? ['localStorage'] : ['remoteStorage']);
@@ -135,7 +135,6 @@ const FileTree: React.FC<FileTreeProps> = ({
       if (checkSize.error) {
         throw new Error(checkSize.error);
       }
-
       setSendStatus((prev) =>
         prev.map((item) =>
           item.fileName === String(node.title) && item.direction === direction
@@ -143,6 +142,7 @@ const FileTree: React.FC<FileTreeProps> = ({
             : item,
         ),
       );
+      setFileTreeKey((prev) => prev + 1);
     } catch (error) {
       console.error('File action failed:', error);
 
