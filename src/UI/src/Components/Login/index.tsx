@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { CheckEnv } from '@constants';
+import { checkAndExecute } from '@constants';
 import { useGlobalState } from '@site/GlobalStateContext';
 const Login = () => {
   const [Host, setHost] = useState<string>('127.0.0.1');
@@ -7,8 +7,8 @@ const Login = () => {
   const [Password, setPassword] = useState<string>('');
   const [Port, setPort] = useState<string>('50051');
   const { setIsLogining, setMessage } = useGlobalState();
-  const Connect = () => {
-    CheckEnv(async () => {
+  const Connect = async () => {
+    await checkAndExecute(async () => {
       if (Host === '' || Port === '' || Username === '' || Password === '') {
         setMessage('請輸入完整資訊');
         return;

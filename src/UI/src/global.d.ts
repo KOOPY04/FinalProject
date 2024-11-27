@@ -17,6 +17,7 @@ interface Window {
       download_file(path: React.Key): Promise<string>;
       list_remote_files(remotePath: string): Promise<string>;
       list_local_files(localpath: string): Promise<string>;
+      delete_file(file_path: string, isLocal: bool): Promise<string>;
     };
   };
 }

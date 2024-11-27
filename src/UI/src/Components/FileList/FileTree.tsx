@@ -81,7 +81,7 @@ const FileTree: React.FC<FileTreeProps> = ({
   const [LocalFolderModalVisible, setLocalFolderModalVisible] = useState(false);
   const [selectedFolder, setSelectedFolder] = useState<string>('');
 
-  const { setSendStatus, setFileTreeKey } = useGlobalState();
+  const { setSendStatus, setFileTreeKey, setMessage, isLogining } = useGlobalState();
   const menuIds = getMenuIds(isLocal);
   useEffect(() => {
     setExpandedKeys(isLocal ? ['localStorage'] : ['remoteStorage']);
@@ -98,6 +98,7 @@ const FileTree: React.FC<FileTreeProps> = ({
     const size = JSON.parse(fileSize);
 
     if (size.error) {
+      setMessage(size.error);
       console.error(size.error);
       return;
     }
@@ -155,6 +156,27 @@ const FileTree: React.FC<FileTreeProps> = ({
       );
     }
   };
+  const handleDeleteFile = async () => {
+    if (rightClickNodeKey) {
+      const node = findNodeByKey(treeData, rightClickNodeKey);
+      if (node) {
+        try {
+          const response = await window.pywebview.api.delete_file(node.key as string, isLocal);
+          const data = JSON.parse(response);
+
+          if (data.error) {
+            console.error('Error:', data.error);
+            setMessage(data.error);
+            return;
+          }
+          setFileTreeKey((prev) => prev + 1);
+        } catch (error) {
+          console.error('Failed to delete file:', error);
+          setMessage('刪除檔案失敗');
+        }
+      }
+    }
+  };
 
   const FileMenu = ({
     isLocal,
@@ -169,7 +191,7 @@ const FileTree: React.FC<FileTreeProps> = ({
       <Item onClick={() => console.log('開啟檔案')} disabled={disableMenu}>
         開啟檔案
       </Item>
-      <Item onClick={() => console.log('刪除檔案')} disabled={disableMenu}>
+      <Item onClick={handleDeleteFile} disabled={disableMenu}>
         刪除檔案
       </Item>
       <Item
@@ -213,12 +235,11 @@ const FileTree: React.FC<FileTreeProps> = ({
     try {
       const response = await window.pywebview.api.get_remote_folders();
       const data = response ? JSON.parse(response) : [];
-
       if (data.error) {
         console.error('Error:', data.error);
+        setMessage(data.error);
         return [];
       }
-      console.log('data', data.folders);
       return data.folders || [];
     } catch (error) {
       console.error('Failed to fetch remote folders:', error);
@@ -227,6 +248,10 @@ const FileTree: React.FC<FileTreeProps> = ({
   };
 
   const handleUploadToRemoteFolder = async () => {
+    if (!isLogining) {
+      setMessage('請先登入');
+      return;
+    }
     const folders = await fetchRemoteFolders();
     setRemoteFolders(folders);
     setRemoteFolderModalVisible(true);

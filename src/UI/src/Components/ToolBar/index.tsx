@@ -10,7 +10,7 @@ import { GiCancel } from 'react-icons/gi';
 import { TbPlugConnected, TbPlugConnectedX } from 'react-icons/tb';
 import React, { useEffect, useState } from 'react';
 import { Button, Input, List, Modal, Space } from 'antd';
-import { CheckEnv } from '@constants';
+import { checkAndExecute } from '@constants';
 import { useGlobalState } from '@site/GlobalStateContext';
 type DataItem = { name: string; host: string; user: string; password: string; port: string };
 interface ToolBarProps {
@@ -61,7 +61,7 @@ const ToolBar: React.FC<ToolBarProps> = ({
             { name: name.trim(), host: host.trim(), user, password, port },
           ];
         }
-        
+        window.pywebview.api.save_host(updatedDataList);
         console.log('Data saved:', updatedDataList);
         return updatedDataList;
       });
@@ -75,10 +75,12 @@ const ToolBar: React.FC<ToolBarProps> = ({
   const handleCancel = () => {
     //Cancel the current operation
     console.log('Cancelling...');
+    setMessage('Cancelling...');
   };
   const handleLastLogin = () => {
     //Connect to the last connected server
     console.log('Connecting to the last connected server...');
+    setMessage('Connecting to the last connected server...');
   };
   const handleDisconnect = async () => {
     const ret: string = await window.pywebview.api.close();
@@ -102,16 +104,16 @@ const ToolBar: React.FC<ToolBarProps> = ({
         toggleSendStatusOpen();
         break;
       case '5':
-        CheckEnv(handleReload);
+        checkAndExecute(handleReload);
         break;
       case '6':
-        CheckEnv(handleCancel);
+        checkAndExecute(handleCancel);
         break;
       case '7':
-        CheckEnv(handleLastLogin);
+        checkAndExecute(handleLastLogin);
         break;
       case '8':
-        CheckEnv(handleDisconnect);
+        checkAndExecute(handleDisconnect);
         break;
     }
   };

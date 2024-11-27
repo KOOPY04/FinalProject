@@ -3,6 +3,7 @@ import webview
 import os
 import json
 
+
 class Api:
     def __init__(self, args: list[str], base_dir=os.path.dirname(os.path.dirname(os.path.abspath(__file__)))):
         from .client import Client
@@ -83,6 +84,7 @@ class Api:
                     response = self.client.GetFileSize(
                         file_name=file_name, extension=extension)
                     return json.dumps({"size": float(response.message)})
+                # /remoteStorage/uploads/A.txt
             elif "remoteStorage" in file_path:
                 if os.path.exists(os.path.join(self.remote_storage_dir, file_name + extension)):
                     response = self.client.GetFileSize(
@@ -92,31 +94,40 @@ class Api:
                 return json.dumps({"error": "Invalid path"})
         return json.dumps({"error": "File not found"})
 
-    def upload_file(self, file_path: str) -> str:
-        if not self.isLogin:
-            return False
-        response = self.client.upload_file(file_path)
-        print("Upload response:", response)  # 添加日誌檢查伺服器回應
+    # def upload_file(self, file_path: str) -> str:
+    #     if not self.isLogin:
+    #         return False
+    #     response = self.client.upload_file(file_path)
+    #     print("Upload response:", response)  # 添加日誌檢查伺服器回應
 
-        if not response:
-            return json.dumps({"error": "Upload failed"})
-        return json.dumps({"message": "Upload successful"})
+    #     if not response:
+    #         return json.dumps({"error": "Upload failed"})
+    #     return json.dumps({"message": "Upload successful"})
 
-    def download_file(self, file_path: str) -> str:
-        if not self.isLogin:
-            return False
-        file_name, extension = os.path.splitext(os.path.basename(file_path))
-        # print("Downloading file:", file_name, extension)
-        response = self.client.download_file(file_name, extension)
-        print("Download response:", response)  # 添加日誌檢查伺服器回應
-        if not response:
-            return json.dumps({"error": "Download failed"})
-        return json.dumps({"message": "Download successful"})
+    # def download_file(self, file_path: str) -> str:
+    #     if not self.isLogin:
+    #         return False
+    #     file_name, extension = os.path.splitext(os.path.basename(file_path))
+    #     # print("Downloading file:", file_name, extension)
+    #     response = self.client.download_file(file_name, extension)
+    #     print("Download response:", response)  # 添加日誌檢查伺服器回應
+    #     if not response:
+    #         return json.dumps({"error": "Download failed"})
+    #     return json.dumps({"message": "Download successful"})
 
-    def delete_file(self, file_path: str) -> str:
-        pass
-
-    # 取得遠端可用的文件夾
+    def delete_file(self, file_path: str, isLocal: bool) -> str:
+        if isLocal:
+            if os.path.exists(file_path):
+                os.remove(file_path)
+                return json.dumps({"message": "File deleted successfully"})
+            return json.dumps({"error": "File not found"})
+        else:
+            file_name, extension = os.path.splitext(file_path)
+            response = self.client.delete_file(file_name, extension)
+            if "not" in response:
+                return json.dumps({"error": "File not found"})
+            return json.dumps({"message": response})
+        
     def get_remote_folders(self) -> str:
         if not self.isLogin:
             return json.dumps({"error": "尚未登入"})
@@ -125,26 +136,27 @@ class Api:
             folders = list(response)
             if not response:  # 如果沒有檔案或資料夾
                 return json.dumps({"error": "沒有找到遠端資料夾"})
-            
+
             if "error" in response:
                 return json.dumps({"error": "無法取得遠端資料夾: " + response["error"]})
-            
+
             return json.dumps({"folders": folders})
         except Exception as e:
             print(e)
             return json.dumps({"error": str(e)})
-        
+
     def upload_file_to_remote(self, file_path: str, remote_folder: str) -> str:
         if not self.isLogin:
             return json.dumps({"error": "Please log in first"})
         # print("Uploading file to:", remote_folder)
-        response = self.client.upload_file(file_path, destination_folder=remote_folder)
-        
+        response = self.client.upload_file(
+            file_path, destination_folder=remote_folder)
+
         if "Upload successful" in response:
             return json.dumps({"message": "File uploaded successfully"})
         else:
             return json.dumps({"error": "Upload failed"})
-        
+
     # 取得遠端可用的文件夾
     def get_local_folders(self) -> str:
         if not self.isLogin:
@@ -155,26 +167,26 @@ class Api:
             # print(folders)
             if not response:  # 如果沒有檔案或資料夾
                 return json.dumps({"error": "沒有找到本地資料夾"})
-            
+
             if "error" in response:
                 return json.dumps({"error": "無法取得本地資料夾: " + response["error"]})
-            
+
             return json.dumps({"folders": folders})
         except Exception as e:
             print(e)
             return json.dumps({"error": str(e)})
-        
+
     def download_file_to_local(self, file_path: str, local_folder: str) -> str:
         if not self.isLogin:
             return json.dumps({"error": "Please log in first"})
         print("Downloading file:", file_path + " to " + local_folder)
         file_name, extension = os.path.splitext(os.path.basename(file_path))
         print("Downloading file:", file_name, extension)
-        response = self.client.download_file(file_name, extension, destination_folder=local_folder)
+        response = self.client.download_file(
+            file_name, extension, destination_folder=local_folder)
         if not response:
             return json.dumps({"error": "Download failed"})
         return json.dumps({"message": "Download successful"})
-
 
     def close(self) -> str:
         if self.isLogin:
@@ -199,7 +211,7 @@ class Api:
             if os.path.isdir(full_path):
                 for entry in os.listdir(full_path):
                     entry_path = os.path.join(full_path, entry)
-                    is_leaf = not os.path.isdir(entry_path) 
+                    is_leaf = not os.path.isdir(entry_path)
                     children.append({
                         "title": entry,
                         "key": entry_path,
@@ -213,7 +225,7 @@ class Api:
                 })
             else:
                 return json.dumps({"error": f"Path {full_path} is not a valid file or directory"})
-            
+
             return json.dumps(children)
         except Exception as e:
             return json.dumps({"error": str(e)})
@@ -222,7 +234,6 @@ class Api:
 
         if path != "remoteStorage" and not path.startswith(os.path.join(self.remote_storage_dir)):
             return json.dumps({"error": f"Invalid path: {path}. Use 'remoteStorage'."})
-
         if path in self.path_mapping:
             full_path = self.path_mapping[path]
         else:
@@ -254,7 +265,7 @@ class Api:
                 })
             else:
                 return json.dumps({"error": f"Path {full_path} is not a valid file or directory"})
-            
+
             return json.dumps(children)
         except Exception as e:
             return json.dumps({"error": str(e)})
