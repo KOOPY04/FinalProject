@@ -2,9 +2,10 @@ from concurrent import futures
 import grpc
 from proto import hello_pb2, hello_pb2_grpc
 from Utils.parser import Parser
+from Utils.File import create_newFile
 
-from os.path import dirname, join, splitext, exists, getsize, isdir
-from os import remove, listdir, makedirs
+from os.path import dirname, join, exists, getsize, isdir, isfile
+from os import remove, listdir, makedirs, rmdir
 
 
 def get_filepath(filename: str, extension: str) -> str:
@@ -35,7 +36,7 @@ class Greeter(hello_pb2_grpc.GreeterServicer):
             return hello_pb2.StringResponse(message=f"{file_size:.2f} {unit[count]}")
 
         return hello_pb2.StringResponse(message="0")
-    
+
     def ListRemoteFolders(self, request, context):
         # 獲取所有資料夾名稱及路徑
         folders = ['remoteStorage']
@@ -44,8 +45,8 @@ class Greeter(hello_pb2_grpc.GreeterServicer):
             if exists(folder_path) and not file in folders:
                 if isdir(folder_path):
                     folders.append(file)
-        
-        return hello_pb2.FileList(files = folders)
+
+        return hello_pb2.FileList(files=folders)
 
     def UploadFile(self, request_iterator, context):
         data: bytearray = bytearray()
@@ -70,7 +71,6 @@ class Greeter(hello_pb2_grpc.GreeterServicer):
             file.write(data)
         return hello_pb2.StringResponse(message=f'File {filepath} uploaded to {destination_folder}.')
 
-
     def DownloadFile(self, request, context):
 
         filepath = get_filepath(request.filename, request.extension)
@@ -90,7 +90,10 @@ class Greeter(hello_pb2_grpc.GreeterServicer):
     def DeleteFile(self, request, context):
         filepath = get_filepath(request.filename, request.extension)
         if exists(join(self.uploads_dir, filepath)):
-            remove(join(self.uploads_dir, filepath))
+            if isfile(join(self.uploads_dir, filepath)):
+                remove(join(self.uploads_dir, filepath))
+            else:
+                rmdir(join(self.uploads_dir, filepath))
             return hello_pb2.StringResponse(message=f'File {filepath} deleted.')
         return hello_pb2.StringResponse(message=f'File {filepath} not found.')
 
@@ -98,6 +101,12 @@ class Greeter(hello_pb2_grpc.GreeterServicer):
         if request.username == "admin" and request.password == "admin":
             return hello_pb2.StringResponse(message="Login successful")
         return hello_pb2.StringResponse(message="Login failed. Incorrect username or password")
+
+    def CreateFile(self, request, context):
+        filename: str = create_newFile(request.destination_folder)
+        if filename.startswith("Error"):
+            return hello_pb2.StringResponse(message=f'Error: {filename}')
+        return hello_pb2.StringResponse(message=f'File {filename} created.')
 
 
 def server(args: list[str]):
@@ -108,4 +117,3 @@ def server(args: list[str]):
     server.add_insecure_port(connect_address)
     server.start()
     server.wait_for_termination()
-

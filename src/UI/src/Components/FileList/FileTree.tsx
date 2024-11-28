@@ -13,52 +13,6 @@ interface FileTreeProps {
   isLocal: boolean;
   onNodeSelect?: (key: React.Key, node: TreeDataNode) => void;
 }
-
-// 決定要使用的右鍵選單 ID
-const getMenuIds = (isLocal: boolean) => ({
-  fileMenuId: `file_menu_${isLocal ? 'local' : 'remote'}`,
-  folderMenuId: `folder_menu_${isLocal ? 'local' : 'remote'}`,
-});
-
-// 資料夾右鍵選單
-const FolderMenu = ({
-  nodeKey,
-  onOpenFolder,
-  nodeTitle,
-  isLocal,
-  menuId,
-  disableMenu,
-}: {
-  nodeKey: React.Key;
-  onOpenFolder: (key: React.Key) => void;
-  nodeTitle: string;
-  isLocal: boolean;
-  menuId: string;
-  disableMenu: boolean;
-}) => (
-  <Menu id={menuId}>
-    <Item onClick={() => onOpenFolder(nodeKey)} disabled={disableMenu}>
-      開啟資料夾
-    </Item>
-    <Item onClick={() => console.log(isLocal ? '新增檔案' : '新增遠端檔案')} disabled={disableMenu}>
-      {isLocal ? '新增檔案' : '新增遠端檔案'}
-    </Item>
-    <Item
-      onClick={() => console.log('刪除資料夾')}
-      disabled={
-        disableMenu ||
-        nodeTitle === '根目錄' ||
-        nodeTitle === '遠端根目錄' ||
-        nodeTitle === 'downloads' ||
-        nodeTitle === 'uploads'
-      }
-    >
-      刪除資料夾
-    </Item>
-  </Menu>
-);
-
-// 檔案樹組件
 const FileTree: React.FC<FileTreeProps> = ({
   initialTreeData = [
     {
@@ -82,6 +36,68 @@ const FileTree: React.FC<FileTreeProps> = ({
   const [selectedFolder, setSelectedFolder] = useState<string>('');
 
   const { setSendStatus, setFileTreeKey, setMessage, isLogining } = useGlobalState();
+  // 決定要使用的右鍵選單 ID
+  const getMenuIds = (isLocal: boolean) => ({
+    fileMenuId: `file_menu_${isLocal ? 'local' : 'remote'}`,
+    folderMenuId: `folder_menu_${isLocal ? 'local' : 'remote'}`,
+  });
+  const handleNewfile = async () => {
+    if (rightClickNodeKey) {
+      const node = findNodeByKey(treeData, rightClickNodeKey);
+      if (node) {
+        try {
+          const response = await window.pywebview.api.create_newFile(node.key as string, isLocal);
+          const data = JSON.parse(response);
+          console.log(data);
+          if (data.error) {
+            console.error('Error:', data.error);
+            setMessage(data.error);
+            return;
+          }
+          setFileTreeKey((prev) => prev + 1);
+        } catch (error) {
+          console.error('Failed to delete file:', error);
+          setMessage('刪除檔案失敗,詳細見控制台');
+        }
+      }
+    }
+  };
+
+  // 資料夾右鍵選單
+  const FolderMenu = ({
+    nodeKey,
+    onOpenFolder,
+    nodeTitle,
+    isLocal,
+    menuId,
+    disableMenu,
+  }: {
+    nodeKey: React.Key;
+    onOpenFolder: (key: React.Key) => void;
+    nodeTitle: string;
+    isLocal: boolean;
+    menuId: string;
+    disableMenu: boolean;
+  }) => (
+    <Menu id={menuId}>
+      <Item onClick={() => onOpenFolder(nodeKey)} disabled={disableMenu}>
+        開啟資料夾
+      </Item>
+      <Item onClick={handleNewfile} disabled={disableMenu}>
+        {isLocal ? '新增檔案' : '新增遠端檔案'}
+      </Item>
+      <Item
+        onClick={handleDeleteFile}
+        disabled={
+          disableMenu || nodeTitle === '根目錄' || nodeTitle === '遠端根目錄'
+          // nodeTitle === 'downloads' ||
+          // nodeTitle === 'uploads'
+        }
+      >
+        刪除資料夾
+      </Item>
+    </Menu>
+  );
   const menuIds = getMenuIds(isLocal);
   useEffect(() => {
     setExpandedKeys(isLocal ? ['localStorage'] : ['remoteStorage']);
@@ -172,7 +188,28 @@ const FileTree: React.FC<FileTreeProps> = ({
           setFileTreeKey((prev) => prev + 1);
         } catch (error) {
           console.error('Failed to delete file:', error);
-          setMessage('刪除檔案失敗');
+          setMessage('刪除檔案失敗,詳細見控制台');
+        }
+      }
+    }
+  };
+
+  const handleOpenFile = async () => {
+    if (rightClickNodeKey) {
+      const node = findNodeByKey(treeData, rightClickNodeKey);
+      if (node) {
+        try {
+          const response = await window.pywebview.api.open_File(node.key as string, isLocal);
+          const data = JSON.parse(response);
+
+          if (data.error) {
+            console.error('Error:', data.error);
+            setMessage(data.error);
+            return;
+          }
+        } catch (error) {
+          console.error('Failed to open file:', error);
+          setMessage('開啟檔案失敗,詳細見控制台');
         }
       }
     }
@@ -188,7 +225,7 @@ const FileTree: React.FC<FileTreeProps> = ({
     disableMenu: boolean;
   }) => (
     <Menu id={menuId}>
-      <Item onClick={() => console.log('開啟檔案')} disabled={disableMenu}>
+      <Item onClick={handleOpenFile} disabled={disableMenu}>
         開啟檔案
       </Item>
       <Item onClick={handleDeleteFile} disabled={disableMenu}>

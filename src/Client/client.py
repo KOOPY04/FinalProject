@@ -5,6 +5,7 @@ import grpc
 import sys
 from proto import hello_pb2, hello_pb2_grpc
 from google.protobuf import empty_pb2
+from Utils.File import open_file, create_newFile
 
 
 class Client:
@@ -85,7 +86,8 @@ class Client:
         if not self.isLogin:
             return "Please login first."
         try:
-            ret = self.client.UploadFile(self.read_to_iter(file_path, chunk_size, destination_folder))
+            ret = self.client.UploadFile(self.read_to_iter(
+                file_path, chunk_size, destination_folder))
             return ret.message
         except grpc.RpcError as e:
             return f"Failed to upload file: {e.details()}"
@@ -107,7 +109,7 @@ class Client:
             return "Please login first."
         response = self.client.ListRemoteFolders(empty_pb2.Empty())
         return response.files
-    
+
     def list_local_folders(self) -> list[str]:
         """
         列出本地文件夾。
@@ -118,7 +120,6 @@ class Client:
             if exists(folder_path) and isdir(folder_path):
                 folders.append(file)
         return folders
-
 
     def download_file(self, filename: str, extension: str, destination_folder: str = None) -> bool:
         """
@@ -169,6 +170,20 @@ class Client:
             self.isLogin = True
             return True
         return False
+
+    @staticmethod
+    def openFile(file_path: str) -> str:
+        return open_file(file_path)
+
+    @staticmethod
+    def createNewFile(client, directory: str, isLocal: bool) -> str:
+        if isLocal and client is None:
+            filename: str = create_newFile(directory)
+            if filename.startswith("Error"):
+                return f'Error: {filename}'
+            return f'已創建: {filename}'
+        else:
+            return client.client.CreateFile(hello_pb2.MetaData(destination_folder=directory))
 
     def close(self):
         """

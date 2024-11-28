@@ -18,6 +18,8 @@ interface Window {
       list_remote_files(remotePath: string): Promise<string>;
       list_local_files(localpath: string): Promise<string>;
       delete_file(file_path: string, isLocal: bool): Promise<string>;
+      open_File(file_path: string, isLocal: bool): Promise<string>;
+      create_newFile(file_path: string, isLocal: bool): Promise<string>;
     };
   };
 }

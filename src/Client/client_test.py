@@ -118,7 +118,10 @@ class Api:
     def delete_file(self, file_path: str, isLocal: bool) -> str:
         if isLocal:
             if os.path.exists(file_path):
-                os.remove(file_path)
+                if os.path.isdir(file_path):
+                    os.rmdir(file_path)
+                else:
+                    os.remove(file_path)
                 return json.dumps({"message": "File deleted successfully"})
             return json.dumps({"error": "File not found"})
         else:
@@ -127,7 +130,19 @@ class Api:
             if "not" in response:
                 return json.dumps({"error": "File not found"})
             return json.dumps({"message": response})
-        
+
+    def open_File(self, file_path: str, isLocal: bool) -> str:
+        if not isLocal:
+            self.download_file_to_local(file_path, "localStorage")
+        ret: str = self.client_obj.openFile(file_path)
+        if ret:
+            return json.dumps({"error": ret})
+
+    def create_newFile(self, file_path: str, isLocal: bool) -> str:
+        response = self.client_obj.createNewFile(self.client,
+                                                 self.path_mapping.get(file_path, file_path), isLocal)
+        return json.dumps({"message": response.message})
+
     def get_remote_folders(self) -> str:
         if not self.isLogin:
             return json.dumps({"error": "尚未登入"})
@@ -157,12 +172,11 @@ class Api:
         else:
             return json.dumps({"error": "Upload failed"})
 
-    # 取得遠端可用的文件夾
     def get_local_folders(self) -> str:
         if not self.isLogin:
             return json.dumps({"error": "Please log in first"})
         try:
-            response = self.client.list_local_folders()  # 從伺服器獲取檔案/資料夾列表
+            response = self.client.list_local_folders()
             folders = list(response)
             # print(folders)
             if not response:  # 如果沒有檔案或資料夾
