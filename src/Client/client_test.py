@@ -141,7 +141,7 @@ class Api:
     def create_newFile(self, file_path: str, isLocal: bool) -> str:
         response = self.client_obj.createNewFile(self.client,
                                                  self.path_mapping.get(file_path, file_path), isLocal)
-        return json.dumps({"message": response.message})
+        return json.dumps({"message": response})
 
     def get_remote_folders(self) -> str:
         if not self.isLogin:

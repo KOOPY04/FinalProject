@@ -183,7 +183,7 @@ class Client:
                 return f'Error: {filename}'
             return f'已創建: {filename}'
         else:
-            return client.client.CreateFile(hello_pb2.MetaData(destination_folder=directory))
+            return client.client.CreateFile(hello_pb2.MetaData(destination_folder=directory)).message
 
     def close(self):
         """
