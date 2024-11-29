@@ -1,12 +1,13 @@
 import { ToolBar, Login, ConnectStatus, FileList, SendStatus } from '@components';
 import { useState } from 'react';
+import { useGlobalState } from './GlobalStateContext';
 
 const App = () => {
   const [connectStatusOpen, setConnectStatusOpen] = useState<boolean>(true);
   const [localfileListOpen, setLocalFileListOpen] = useState<boolean>(true);
   const [remoteFileListOpen, setRemoteFileListOpen] = useState<boolean>(true);
   const [sendStatusOpen, setSendStatusOpen] = useState<boolean>(true);
-  const [fileTreeKey, setFileTreeKey] = useState(0);
+  const { fileTreeKey, setFileTreeKey } = useGlobalState();
 
   const handleReload = () => {
     console.log('Reloading...');
@@ -45,7 +46,7 @@ const App = () => {
       )}
       {sendStatusOpen && (
         <div className='h-28'>
-          <SendStatus  />
+          <SendStatus />
         </div>
       )}
     </div>

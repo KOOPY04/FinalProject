@@ -7,6 +7,7 @@ service Greeter {
   rpc DeleteFile(MetaData) returns (StringResponse) {}
   rpc Login(LoginRequest) returns (StringResponse) {}
   rpc ListRemoteFolders(google.protobuf.Empty) returns (FileList) {}
+  rpc CreateFile(MetaData) returns (StringResponse) {}
 }
 
 message StringResponse {

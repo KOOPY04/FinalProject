@@ -13,50 +13,6 @@ interface FileTreeProps {
   isLocal: boolean;
   onNodeSelect?: (key: React.Key, node: TreeDataNode) => void;
 }
-
-const getMenuIds = (isLocal: boolean) => ({
-  fileMenuId: `file_menu_${isLocal ? 'local' : 'remote'}`,
-  folderMenuId: `folder_menu_${isLocal ? 'local' : 'remote'}`,
-});
-
-// 資料夾右鍵選單
-const FolderMenu = ({
-  nodeKey,
-  onOpenFolder,
-  nodeTitle,
-  isLocal,
-  menuId,
-  disableMenu,
-}: {
-  nodeKey: React.Key;
-  onOpenFolder: (key: React.Key) => void;
-  nodeTitle: string;
-  isLocal: boolean;
-  menuId: string;
-  disableMenu: boolean;
-}) => (
-  <Menu id={menuId}>
-    <Item onClick={() => onOpenFolder(nodeKey)} disabled={disableMenu}>
-      開啟資料夾
-    </Item>
-    <Item onClick={() => console.log(isLocal ? '新增檔案' : '新增遠端檔案')} disabled={disableMenu}>
-      {isLocal ? '新增檔案' : '新增遠端檔案'}
-    </Item>
-    <Item
-      onClick={() => console.log('刪除資料夾')}
-      disabled={
-        disableMenu ||
-        nodeTitle === '根目錄' ||
-        nodeTitle === '遠端根目錄' ||
-        nodeTitle === 'downloads' ||
-        nodeTitle === 'uploads'
-      }
-    >
-      刪除資料夾
-    </Item>
-  </Menu>
-);
-
 const FileTree: React.FC<FileTreeProps> = ({
   initialTreeData = [
     {
@@ -79,7 +35,69 @@ const FileTree: React.FC<FileTreeProps> = ({
   const [LocalFolderModalVisible, setLocalFolderModalVisible] = useState(false);
   const [selectedFolder, setSelectedFolder] = useState<string>('');
 
-  const { setSendStatus } = useGlobalState();
+  const { setSendStatus, setFileTreeKey, setMessage, isLogining } = useGlobalState();
+  // 決定要使用的右鍵選單 ID
+  const getMenuIds = (isLocal: boolean) => ({
+    fileMenuId: `file_menu_${isLocal ? 'local' : 'remote'}`,
+    folderMenuId: `folder_menu_${isLocal ? 'local' : 'remote'}`,
+  });
+  const handleNewfile = async () => {
+    if (rightClickNodeKey) {
+      const node = findNodeByKey(treeData, rightClickNodeKey);
+      if (node) {
+        try {
+          const response = await window.pywebview.api.create_newFile(node.key as string, isLocal);
+          const data = JSON.parse(response);
+          console.log(data);
+          if (data.error) {
+            console.error('Error:', data.error);
+            setMessage(data.error);
+            return;
+          }
+          setFileTreeKey((prev) => prev + 1);
+        } catch (error) {
+          console.error('Failed to delete file:', error);
+          setMessage('刪除檔案失敗,詳細見控制台');
+        }
+      }
+    }
+  };
+
+  // 資料夾右鍵選單
+  const FolderMenu = ({
+    nodeKey,
+    onOpenFolder,
+    nodeTitle,
+    isLocal,
+    menuId,
+    disableMenu,
+  }: {
+    nodeKey: React.Key;
+    onOpenFolder: (key: React.Key) => void;
+    nodeTitle: string;
+    isLocal: boolean;
+    menuId: string;
+    disableMenu: boolean;
+  }) => (
+    <Menu id={menuId}>
+      <Item onClick={() => onOpenFolder(nodeKey)} disabled={disableMenu}>
+        開啟資料夾
+      </Item>
+      <Item onClick={handleNewfile} disabled={disableMenu}>
+        {isLocal ? '新增檔案' : '新增遠端檔案'}
+      </Item>
+      <Item
+        onClick={handleDeleteFile}
+        disabled={
+          disableMenu || nodeTitle === '根目錄' || nodeTitle === '遠端根目錄'
+          // nodeTitle === 'downloads' ||
+          // nodeTitle === 'uploads'
+        }
+      >
+        刪除資料夾
+      </Item>
+    </Menu>
+  );
   const menuIds = getMenuIds(isLocal);
   useEffect(() => {
     setExpandedKeys(isLocal ? ['localStorage'] : ['remoteStorage']);
@@ -96,6 +114,7 @@ const FileTree: React.FC<FileTreeProps> = ({
     const size = JSON.parse(fileSize);
 
     if (size.error) {
+      setMessage(size.error);
       console.error(size.error);
       return;
     }
@@ -133,7 +152,6 @@ const FileTree: React.FC<FileTreeProps> = ({
       if (checkSize.error) {
         throw new Error(checkSize.error);
       }
-
       setSendStatus((prev) =>
         prev.map((item) =>
           item.fileName === String(node.title) && item.direction === direction
@@ -141,6 +159,7 @@ const FileTree: React.FC<FileTreeProps> = ({
             : item,
         ),
       );
+      setFileTreeKey((prev) => prev + 1);
     } catch (error) {
       console.error('File action failed:', error);
 
@@ -151,6 +170,48 @@ const FileTree: React.FC<FileTreeProps> = ({
             : item,
         ),
       );
+    }
+  };
+  const handleDeleteFile = async () => {
+    if (rightClickNodeKey) {
+      const node = findNodeByKey(treeData, rightClickNodeKey);
+      if (node) {
+        try {
+          const response = await window.pywebview.api.delete_file(node.key as string, isLocal);
+          const data = JSON.parse(response);
+
+          if (data.error) {
+            console.error('Error:', data.error);
+            setMessage(data.error);
+            return;
+          }
+          setFileTreeKey((prev) => prev + 1);
+        } catch (error) {
+          console.error('Failed to delete file:', error);
+          setMessage('刪除檔案失敗,詳細見控制台');
+        }
+      }
+    }
+  };
+
+  const handleOpenFile = async () => {
+    if (rightClickNodeKey) {
+      const node = findNodeByKey(treeData, rightClickNodeKey);
+      if (node) {
+        try {
+          const response = await window.pywebview.api.open_File(node.key as string, isLocal);
+          const data = JSON.parse(response);
+
+          if (data.error) {
+            console.error('Error:', data.error);
+            setMessage(data.error);
+            return;
+          }
+        } catch (error) {
+          console.error('Failed to open file:', error);
+          setMessage('開啟檔案失敗,詳細見控制台');
+        }
+      }
     }
   };
 
@@ -164,10 +225,10 @@ const FileTree: React.FC<FileTreeProps> = ({
     disableMenu: boolean;
   }) => (
     <Menu id={menuId}>
-      <Item onClick={() => console.log('開啟檔案')} disabled={disableMenu}>
+      <Item onClick={handleOpenFile} disabled={disableMenu}>
         開啟檔案
       </Item>
-      <Item onClick={() => console.log('刪除檔案')} disabled={disableMenu}>
+      <Item onClick={handleDeleteFile} disabled={disableMenu}>
         刪除檔案
       </Item>
       <Item
@@ -211,12 +272,11 @@ const FileTree: React.FC<FileTreeProps> = ({
     try {
       const response = await window.pywebview.api.get_remote_folders();
       const data = response ? JSON.parse(response) : [];
-
       if (data.error) {
         console.error('Error:', data.error);
+        setMessage(data.error);
         return [];
       }
-      console.log('data', data.folders);
       return data.folders || [];
     } catch (error) {
       console.error('Failed to fetch remote folders:', error);
@@ -225,6 +285,10 @@ const FileTree: React.FC<FileTreeProps> = ({
   };
 
   const handleUploadToRemoteFolder = async () => {
+    if (!isLogining) {
+      setMessage('請先登入');
+      return;
+    }
     const folders = await fetchRemoteFolders();
     setRemoteFolders(folders);
     setRemoteFolderModalVisible(true);
@@ -367,25 +431,14 @@ const FileTree: React.FC<FileTreeProps> = ({
   const handleFolderSelection = async () => {
     if (selectedFolder && rightClickNodeKey) {
       const node = findNodeByKey(treeData, rightClickNodeKey); // 檢查右鍵選取的節點是否正確
-      console.log('選擇的資料夾:', selectedFolder);
-      console.log('選擇的檔案節點:', node);
 
       if (node) {
         if (isLocal) {
           await handleFileAction('上傳檔案', node, selectedFolder, undefined); // 執行下載動作
         } else await handleFileAction('下載檔案', node, '', selectedFolder); // 執行上傳動作
-      } else {
-        console.warn('無法找到對應的檔案節點');
       }
-    } else {
-      console.warn('未選取資料夾或檔案節點');
     }
-
-    if (isLocal) {
-      setLocalFolderModalVisible(false);
-    } else {
-      setRemoteFolderModalVisible(false);
-    }
+    isLocal ? setLocalFolderModalVisible(false) : setRemoteFolderModalVisible(false);
   };
 
   return (
@@ -400,7 +453,7 @@ const FileTree: React.FC<FileTreeProps> = ({
       />
       <Modal
         title='選擇目標資料夾'
-        visible={isLocal ? RemoteFolderModalVisible : LocalFolderModalVisible}
+        open={isLocal ? RemoteFolderModalVisible : LocalFolderModalVisible}
         onOk={() => {
           if (selectedFolder) {
             handleFolderSelection();
@@ -412,6 +465,7 @@ const FileTree: React.FC<FileTreeProps> = ({
           setRemoteFolderModalVisible(false);
           setLocalFolderModalVisible(false);
         }}
+        destroyOnClose={true}
       >
         <Select
           style={{ width: '100%' }}
