@@ -127,8 +127,19 @@ const ToolBar: React.FC<ToolBarProps> = ({
     setIsEditing(true);
     setIsModalVisible(true);
   };
-  const handleConnect = (item: DataItem) => {
+  const handleConnect = async (item: DataItem) => {
+    setIsModalVisible(false);
     console.log(`Connecting to ${item.host}`);
+    await checkAndExecute(async () => {
+      const ret = await window.pywebview.api.login(item.host, item.port, item.user, item.password);
+      const data = JSON.parse(ret);
+      if ('error' in data) {
+        setMessage(data.error);
+      } else {
+        setMessage(data.message);
+        setIsLogining(true);
+      }
+    });
   };
   const handleDelete = async (item: DataItem) => {
     const updatedDataList = dataList.filter((i: DataItem) => i.host !== item.host);
