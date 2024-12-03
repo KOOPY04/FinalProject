@@ -291,4 +291,4 @@ def client_test(args: list[str]) -> NoReturn:
     index_path = os.path.join(current_dir, 'dist/index.html')
     webview.create_window(
         'File Uploader', index_path, js_api=api, resizable=True, width=1000, height=885)
-    webview.start(debug=True)
+    webview.start(debug=False)
